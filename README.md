@@ -117,6 +117,10 @@ This will stop and remove all the containers defined in the `docker-compose.yml`
 
 ## Password Change
 
-The password is stored in encrypted form in the database. To change it, you need to run the following command on the Docker host: `docker exec quickfeeds-flask_app-1 python change_password.py user_name new_password`. Here, `quickfeeds-flask_app-1` is the name of the container, which can be seen by running the command `docker ps`.
+The password is stored encrypted in the database. To change it, you need to run the following command on the Docker host: 
+```bash 
+docker exec quickfeeds-flask_app-1 python change_password.py user_name new_password
+```
+Here, `quickfeeds-flask_app-1` is the name of the container, which can be seen by running the command `docker ps`.
 
 Special thanks to OpenAI.
