@@ -123,4 +123,6 @@ docker exec quickfeeds-flask_app-1 python change_password.py user_name new_passw
 ```
 Here, `quickfeeds-flask_app-1` is the name of the container, which can be seen by running the command `docker ps`.
 
+## Acknowledgments
+
 Special thanks to OpenAI.
