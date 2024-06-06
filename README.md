@@ -1,4 +1,4 @@
-# QuickFeeds
+# QuickFeeds [![Python application](https://github.com/defnone/quickfeeds/actions/workflows/python-app.yml/badge.svg)](https://github.com/defnone/quickfeeds/actions/workflows/python-app.yml)
 A simple self-hosted RSS reader with article summarization feature.
 
 This is my first software project, developed for personal use.
@@ -115,6 +115,7 @@ docker-compose down
 
 This will stop and remove all the containers defined in the `docker-compose.yml` file.
 
+## Password Change
 
 The password is stored in encrypted form in the database. To change it, you need to run the following command on the Docker host: `docker exec quickfeeds-flask_app-1 python change_password.py user_name new_password`. Here, `quickfeeds-flask_app-1` is the name of the container, which can be seen by running the command `docker ps`.
 
