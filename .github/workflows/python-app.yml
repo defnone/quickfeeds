@@ -11,17 +11,11 @@ permissions:
 
 jobs:
     build:
+        if: "!contains(github.event.head_commit.message, 'chore')"
         runs-on: ubuntu-latest
 
         steps:
             - uses: actions/checkout@v4
-            - name: Check commit message for "chore:"
-              id: check_message
-              run: |
-                  if git log -1 --pretty=%B | grep -i 'chore'; then
-                    echo "Commit message contains 'chore'. Skipping the workflow."
-                    exit 0
-                  fi
             - name: Set up Python 3.12.3
               uses: actions/setup-python@v3
               with:
