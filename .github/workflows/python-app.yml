@@ -15,7 +15,7 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - name: Check commit message for "chore"
+            - name: Check commit message for "chore:"
               id: check_message
               run: |
                   if git log -1 --pretty=%B | grep -i 'chore'; then
