@@ -1,0 +1,42 @@
+<div
+    class="flex w-full max-w-4xl fixed sm:relative top-0 pt-5 pb-5 sm:p-0 z-40 sm:border-0 border-b border-opacity-25 border-gray-700 bg-slate-900 sm:bg-transparent bg-opacity-85 backdrop-blur-md">
+    <div class="flex w-full px-2 md:py-8 lg:px-11 text-gray-400 text-sm">
+        <form
+            action="{{ request.path|add_trailing_slash }}mark_as_read_all"
+            method="post">
+            <button
+                type="submit"
+                id="modal-fix"
+                class="group relative flex bg-stone-800 px-4 py-3 ml-4 rounded-lg font-semibold hover:bg-orange-900 hover:text-white active:bg-stone-900 focus:border-0 focus:outline-none">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    class="w-6 h-6">
+                    <path
+                        fill-rule="evenodd"
+                        d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span
+                    class="invisible z-0 absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded bg-gray-900 px-2 py-1.5 text-sm font-medium text-white group-hover:visible">
+                    Mark&nbspall&nbspas&nbspread
+                </span>
+            </button>
+        </form>
+        <div class="flex ml-auto mr-auto">
+            <button
+                id="btnDefault"
+                onclick="navigateDefault()">
+                Unread
+            </button>
+            <button
+                id="btnAll"
+                onclick="navigateAll()">
+                All
+            </button>
+        </div>
+    </div>
+    <div
+        class="block font-mono px-6 py-4 text-gray-600 text-sm ml-auto mr-0"></div>
+</div>

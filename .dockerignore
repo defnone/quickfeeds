@@ -1,0 +1,13 @@
+tests
+.github
+.git
+.gitignore
+*.pyc
+__pycache__
+.env
+README.md
+LICENSE
+Dockerfile
+docker-compose.yml
+htmlcov
+assets
