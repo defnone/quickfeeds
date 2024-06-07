@@ -138,6 +138,7 @@
         function getUserSettings() {
             fetch('/api/settings', {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -178,6 +179,7 @@
 
                 fetch('/api/settings', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -201,6 +203,7 @@
                 const groqApiKey = groqApiKeyInput.value;
                 fetch('/api/groq/check', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -229,6 +232,7 @@
 
             fetch('/api/settings/change_password', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
