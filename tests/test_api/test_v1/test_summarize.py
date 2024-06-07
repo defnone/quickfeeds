@@ -94,7 +94,7 @@ def test_api_summarize_authenticated(
 
     mock_groq_request.return_value = "Summarized text"
     response = client.post(
-        "/api/summarize/",
+        "/api/summarize",
         json={"url": "http://example.com"},
         content_type="application/json",
     )
@@ -108,7 +108,7 @@ def test_user_not_authenticated(client):
     """
     Test the API summarization endpoint when the user is not authenticated.
     """
-    response = client.post("/api/summarize/", content_type="application/json")
+    response = client.post("/api/summarize", content_type="application/json")
     assert response.status_code == 401
     assert "User not authenticated" in response.json["error"]
 
@@ -129,7 +129,7 @@ def test_missing_api_key(
         db.session.commit()
 
     response = client.post(
-        "/api/summarize/",
+        "/api/summarize",
         json={"url": "http://example.com"},
         content_type="application/json",
     )
@@ -147,7 +147,7 @@ def test_missing_url_in_request_data(
     auth.login(username="testuser", password="testpassword")
 
     response = client.post(
-        "/api/summarize/", json={}, content_type="application/json"
+        "/api/summarize", json={}, content_type="application/json"
     )
     assert response.status_code == 400
     assert "Missing URL in request data" in response.json["error"]
@@ -170,7 +170,7 @@ def test_failed_to_get_text_from_url(
 
     mock_get_text.return_value = None
     response = client.post(
-        "/api/summarize/",
+        "/api/summarize",
         json={"url": "http://example.com"},
         content_type="application/json",
     )
@@ -199,7 +199,7 @@ def test_successful_summarization(
     mock_groq_request.return_value = "Summarized text"
     mock_text_to_html_list.return_value = ["Summarized text"]
     response = client.post(
-        "/api/summarize/",
+        "/api/summarize",
         json={"url": "http://example.com"},
         content_type="application/json",
     )
@@ -234,7 +234,7 @@ def test_translation(
     mock_groq_request.return_value = "Summarized text"
     mock_text_to_html_list.return_value = ["Translated text"]
     response = client.post(
-        "/api/summarize/",
+        "/api/summarize",
         json={"url": "http://example.com", "translate": True},
         content_type="application/json",
     )
