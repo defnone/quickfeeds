@@ -69,7 +69,7 @@
         <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
             <label class="w-full md:w-1/2text-left text-gray-300">Translate summary</label>
             
-            <div class="flex w-1/2 w-full">
+            <div class="flex md:w-1/2 w-full">
                 <label
                 x-data="{ isChecked: false }"
                 for="translate"
@@ -119,6 +119,11 @@
             <div class="flex items-center px-6 py-4 text-gray-600 text-sm">V: {{ version }}</div>
             <button class="block mt-10 mb-5 ml-auto mr-5 font-extrabold bg-blue-600 hover:bg-blue-700 px-6 py-3 focus:outline-none rounded-md " id="save-settings">Save Settings</button>
         </div>
+        <div class="flex flex-row w-full ">
+            <div id="web-app-message" class="flex items-center px-6 py-4 text-gray-400 text-sm"></div>
+        
+        </div>
+    </div>
     </div>
     
 
@@ -258,6 +263,7 @@
                 showMessage('Failed to change password', 'error');
             });
     }
+        
 
         
         checkGroqApiKeyButton.addEventListener('click', checkGroqApiKey);
@@ -266,6 +272,21 @@
 
         getUserSettings();
     });
+function isSafari() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('android');
+}
+
+function isNotWebApp() {
+    return !window.navigator.standalone;
+}
+
+if (isSafari() && isNotWebApp()) {
+    document.getElementById('web-app-message').innerText = 'You can create a Safari web app and open it as an application on your device (on macOS Sonoma and later or iOS 11.3 and later). Click the share button and select "Add to Home Screen"';
+}
+
+
+
 </script>
 
 {% endblock %}
