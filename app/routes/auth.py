@@ -10,7 +10,7 @@ from flask import (
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
-from app.models import User, Settings
+from app.models import User, Settings, Category
 
 auth_blueprint = Blueprint("auth", __name__)
 
@@ -28,6 +28,10 @@ def register():
 
         settings = Settings(user_id=user.id)
         db.session.add(settings)
+        db.session.commit()
+
+        category = Category(name="Unnamed", user_id=user.id)
+        db.session.add(category)
         db.session.commit()
 
         login_user(user)
