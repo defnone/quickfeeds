@@ -73,7 +73,7 @@ If you prefer to quickly launch the application without using `docker-compose`, 
 
 ```bash
 docker run -d \
-  --name flask_app \
+  --name quickfeeds \
   -p 8000:8000 \
   -v quickfeeds_data:/data \
   -e FLASK_APP=run.py \
