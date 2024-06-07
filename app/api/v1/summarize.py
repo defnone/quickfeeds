@@ -9,7 +9,7 @@ from app.utils.translate import translate_text_google
 api_summarize_blueprint = Blueprint("api_summarize_blueprint", __name__)
 
 
-@api_summarize_blueprint.route("/", methods=["POST", "GET"])
+@api_summarize_blueprint.route("", methods=["POST", "GET"])
 def summarize():
     """
     This function handles the summarization of text from a given URL.
