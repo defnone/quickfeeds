@@ -11,7 +11,7 @@ It runs on:
 
 The application interface works well as a [Safari web app](https://support.apple.com/en-kw/guide/safari/ibrw9e991864/mac) for both macOS and iOS.
 
-![Web App on macOS](./assets/screen1.png)
+![Screen 5](./assets/screen5.jpeg)
 
 ![Web App on iOS](./assets/screen4.png)
 
