@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 fetch('/api/summarize', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -285,6 +286,7 @@ function navigateDefault() {
     if (currentPath !== newPath) {
         fetch('/api/settings', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -308,6 +310,7 @@ function navigateAll() {
     if (currentPath !== newPath) {
         fetch('/api/settings', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -374,6 +377,7 @@ function markAsRead(postId) {
     if (!readPosts.has(postId)) {
         fetch(`/mark_as_read/${postId}`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
