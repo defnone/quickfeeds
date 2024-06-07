@@ -68,7 +68,7 @@ def create_response(items, user_timezone):
     return jsonify([serialize_item(item, user_timezone) for item in items])
 
 
-@api_feeditems_blueprint.route("/", methods=["GET"])
+@api_feeditems_blueprint.route("", methods=["GET"])
 def get_feed_items():
     """
     Retrieve unread feed items for the current user with optional pagination.
