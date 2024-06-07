@@ -1,15 +1,17 @@
 {% extends "menu.html" %} {% block content %}
 
 <div class="flex-col max-w-3xl mt-10 mb-16 px-6 md:px-0 md:pl-14 space-y-4">
-    
-
     <div class="flex flex-col space-y-0.5 mb-6">
+
+        <!-- General settings -->
         <div class="space-x-4 mt-6 py-4">
             <h2 class="text-xl text-gray-100 font-extrabold ml-4">General settings</h2>
-            <div class="text-sm mt-4 text-gray-500">Language settings are used only when converting content.</div>
-        </div>  
+            <div class="text-sm mt-4 text-gray-500">Language settings are used only when translating content, such as summaries.</div>
+        </div>
+        
+        <!-- Update interval -->
         <div x-data="{ input: '' }" class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
-            <label for="update-interval" class="w-full  md:w-1/2 text-left text-gray-300">Update Interval (minutes)</label>
+            <label for="update-interval" class="w-full md:w-1/2 text-left text-gray-300">Update Interval (minutes)</label>
             <input
                 type="text"
                 x-model="input"
@@ -18,23 +20,27 @@
                 name="update-interval"
                 class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" />
         </div>
+
+        <!-- Timezone -->
         <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
             <label for="timezone" class="w-full md:w-1/2 text-left text-gray-300">Timezone</label>
             <select
                 id="timezone"
                 name="timezone"
-                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800  focus:bg-stone-800 rounded-lg px-4 py-2">
+                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2">
                 {% for tz in timezones %}
                     <option value="{{ tz }}" {% if settings and settings.timezone == tz %}selected{% endif %}>{{ tz.replace('_', ' ') }}</option>
                 {% endfor %}
             </select>
         </div>
+
+        <!-- Language -->
         <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
             <label for="language" class="w-full md:w-1/2 text-left text-gray-300">Language</label>
             <select
                 id="language"
                 name="language"
-                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800  focus:bg-stone-800 rounded-lg px-4 py-2">
+                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2">
                 <option value="Chinese">Chinese</option>
                 <option value="English">English</option>
                 <option value="French">French</option>
@@ -48,7 +54,7 @@
         </div>
 
         <!-- Groq API key -->
-        <div class="space-x-4 mt-6  py-4">
+        <div class="space-x-4 mt-6 py-4">
             <h2 class="text-xl text-gray-100 font-extrabold ml-4 mt-6">AI summary settings</h2>
             <div class="text-sm mt-4 text-gray-500">You need to get a free API key in the <a class="underline" href="https://console.groq.com/keys">Groq console</a>.</div>
         </div>  
@@ -60,73 +66,57 @@
                 name="groq-api-key"
                 placeholder="Enter your Groq API key"
                 class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
-                <button id="check-groq-api-key" class="ml-4 px-4 py-2 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Check</button>
-
+            <button id="check-groq-api-key" class="ml-4 px-4 py-2 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Check</button>
         </div>
 
         <!-- Translate -->
-
         <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
-            <label class="w-full md:w-1/2text-left text-gray-300">Translate summary</label>
-            
+            <label class="w-full md:w-1/2 text-left text-gray-300">Translate summary</label>
             <div class="flex md:w-1/2 w-full">
                 <label
-                x-data="{ isChecked: false }"
-                for="translate"
-                class="relative  h-8 w-14 cursor-pointer rounded-full transition [-webkit-tap-highlight-color:_transparent]"
-                :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }"
-                >
-                <input x-model="isChecked" type="checkbox" id="translate" name="translate" class="sr-only" />
-                
-                <span
-                    :class="{ 'start-0': !isChecked, 'start-6': isChecked }"
-                    class="absolute inset-y-0 m-1 size-6 rounded-full bg-gray-800 transition-all"
-                ></span>
+                    x-data="{ isChecked: false }"
+                    for="translate"
+                    class="relative h-8 w-14 cursor-pointer rounded-full transition"
+                    :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }">
+                    <input x-model="isChecked" type="checkbox" id="translate" name="translate" class="sr-only" />
+                    <span :class="{ 'start-0': !isChecked, 'start-6': isChecked }" class="absolute inset-y-0 m-1 size-6 rounded-full bg-gray-800 transition-all"></span>
                 </label>
             </div>
         </div>
 
-        </div>
-
-
         <!-- Change password -->
         <div x-data="{ open: false }" class="mt-6 py-4">
             <button @click="open = !open" class="text-xl hover:text-slate-300 focus:outline-none text-gray-100 underline underline-offset-4 font-extrabold ml-5 mt-6">Change password</button>
-            <div class="text-sm mt-4 text-gray-500"></div>
             <div class="overflow-hidden transition-all duration-600" x-ref="container" x-bind:style="open ? 'max-height: ' + $refs.container.scrollHeight + 'px' : 'max-height: 0px'">
-
-        <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
-            <input
-                type="password"
-                id="new_password"
-                name="new_password"
-                placeholder="New password"
-                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
-            <input
-                type="password"
-                id="confirm_password"
-                name="confirm_password"
-                placeholder="Confirm password"
-                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
-                <button id="change_password" class="ml-4 px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Change</button>
-
-        </div>
-        </div>
+                <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+                    <input
+                        type="password"
+                        id="new_password"
+                        name="new_password"
+                        placeholder="New password"
+                        class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        placeholder="Confirm password"
+                        class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
+                    <button id="change_password" class="ml-4 px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Change</button>
+                </div>
+            </div>
         </div> 
         
-
-        <div class="flex flex-row w-full ">
+        <!-- Save settings and v -->
+        <div class="flex flex-col-reverse md:flex-row w-full">
             <div class="flex items-center px-6 py-4 text-gray-600 text-sm">V: {{ version }}</div>
-            <button class="block mt-10 mb-5 ml-auto mr-5 font-extrabold bg-blue-600 hover:bg-blue-700 px-6 py-3 focus:outline-none rounded-md " id="save-settings">Save Settings</button>
+            <button class="block mt-10 mb-5 ml-3 md:ml-auto mr-5 font-extrabold bg-blue-600 hover:bg-blue-700 px-6 py-3 focus:outline-none rounded-md" id="save-settings">Save Settings</button>
         </div>
-        <div class="flex flex-row w-full ">
-            <div id="web-app-message" class="flex items-center px-6 py-4 text-gray-400 text-sm"></div>
         
+        <!-- Web app message -->
+        <div class="flex flex-row w-full">
+            <div id="web-app-message" class="flex items-center px-6 py-4 text-gray-400 text-sm"></div>
         </div>
     </div>
-    </div>
-    
-
 </div>
 
 <script>
@@ -134,17 +124,13 @@
         const updateIntervalInput = document.getElementById('update-interval');
         const timezoneSelect = document.getElementById('timezone');
         const languageSelect = document.getElementById('language');
-
         const groqApiKeyInput = document.getElementById('groq-api-key');
         const checkGroqApiKeyButton = document.getElementById('check-groq-api-key');
         const translateToggle = document.getElementById('translate');
-
         const changePasswordButton = document.getElementById('change_password');
         const newPasswordInput = document.getElementById('new_password');
         const confirmPasswordInput = document.getElementById('confirm_password');
-
         const saveSettingsButton = document.getElementById('save-settings');
-        
 
         function getUserSettings() {
             fetch('/api/settings', {
@@ -161,7 +147,6 @@
                     groqApiKeyInput.value = data.groq_api_key;
                     translateToggle.checked = data.translate;
                     translateToggle.dispatchEvent(new Event('change'));
-
                 })
                 .catch((error) => {
                     console.error('Error fetching settings:', error);
@@ -174,8 +159,7 @@
                 const updateInterval = updateIntervalInput.value;
                 const timezone = timezoneSelect.value;
                 const language = languageSelect.value;
-                const translate = translateToggle.checked; 
-
+                const translate = translateToggle.checked;
                 let groqApiKey = groqApiKeyInput.value;
 
                 let settings = {
@@ -237,55 +221,52 @@
         }
 
         function changePassword() {
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
 
-        fetch('/api/settings/change_password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                new_password: newPassword,
-                confirm_password: confirmPassword,
-            }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.status === 'success') {
-                    showMessage('Password changed successfully', 'success');
-                } else {
-                    showMessage(data.error, 'error');
-                }
+            fetch('/api/settings/change_password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    new_password: newPassword,
+                    confirm_password: confirmPassword,
+                }),
             })
-            .catch((error) => {
-                console.error('Error changing password:', error);
-                showMessage('Failed to change password', 'error');
-            });
-    }
-        
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === 'success') {
+                        showMessage('Password changed successfully', 'success');
+                    } else {
+                        showMessage(data.error, 'error');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error changing password:', error);
+                    showMessage('Failed to change password', 'error');
+                });
+        }
 
-        
         checkGroqApiKeyButton.addEventListener('click', checkGroqApiKey);
         changePasswordButton.addEventListener('click', changePassword);
         saveSettingsButton.addEventListener('click', saveUserSettings);
 
         getUserSettings();
     });
-function isSafari() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('android');
-}
 
-function isNotWebApp() {
-    return !window.navigator.standalone;
-}
+    function isSafari() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('android');
+    }
 
-if (isSafari() && isNotWebApp()) {
-    document.getElementById('web-app-message').innerText = 'You can create a Safari web app and open it as an application on your device (on macOS Sonoma and later or iOS 11.3 and later). Click the share button and select "Add to Home Screen"';
-}
+    function isNotWebApp() {
+        return !window.navigator.standalone;
+    }
 
-
+    if (isSafari() && isNotWebApp()) {
+        document.getElementById('web-app-message').innerText = 'You can create a Safari web app and open it as an application on your device (on macOS Sonoma and later or iOS 11.3 and later). Click the share button and select "Add to Dock" or "Add to Home Screen".';
+    }
 
 </script>
 
