@@ -7,7 +7,7 @@ from app.models import Settings
 api_settings_blueprint = Blueprint("api_settings_blueprint", __name__)
 
 
-@api_settings_blueprint.route("/", methods=["GET", "POST"])
+@api_settings_blueprint.route("", methods=["GET", "POST"])
 def user_settings():
     """
     Handle GET and POST requests for user settings.
