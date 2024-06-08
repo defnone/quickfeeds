@@ -1,10 +1,12 @@
 import unittest
+import requests
 from unittest.mock import patch, Mock
 from app.utils.text import (
     fetch_article,
     parse_article,
     get_text_from_url,
     text_to_html_list,
+    is_url_safe,
 )
 
 
@@ -22,6 +24,9 @@ class TestArticleUtils(unittest.TestCase):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "<html><h1>Test Article</h1></html>"
+        mock_response.content = mock_response.text.encode(
+            "utf-8"
+        )  # Mock the content attribute
         mock_get.return_value = mock_response
 
         url = "http://example.com/article"
@@ -36,13 +41,17 @@ class TestArticleUtils(unittest.TestCase):
         # Mock the response of requests.get
         mock_response = Mock()
         mock_response.status_code = 404
+        mock_response.raise_for_status.side_effect = requests.RequestException(
+            "404 Client Error: Not Found for url"
+        )
         mock_get.return_value = mock_response
 
         url = "http://example.com/article"
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(requests.RequestException) as context:
             fetch_article(url)
         self.assertIn(
-            "Failed to fetch article. Status code: 404", str(context.exception)
+            "Failed to fetch article. Error: 404 Client Error: Not Found for url",
+            str(context.exception),
         )
 
     def test_parse_article(self):
@@ -80,6 +89,41 @@ class TestArticleUtils(unittest.TestCase):
         expected_html = "<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n  <li>Item 3</li>\n</ul>\n"
         result = text_to_html_list(text)
         self.assertEqual(result, expected_html)
+
+    def test_is_url_safe_valid_url(self):
+        """
+        Test the is_url_safe function with a valid URL.
+        """
+        url = "http://example.com"
+        self.assertTrue(is_url_safe(url))
+
+    def test_is_url_safe_invalid_scheme(self):
+        """
+        Test the is_url_safe function with an invalid scheme.
+        """
+        url = "ftp://example.com"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_private_ip(self):
+        """
+        Test the is_url_safe function with a private IP address.
+        """
+        url = "http://192.168.0.1"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_loopback(self):
+        """
+        Test the is_url_safe function with a loopback address.
+        """
+        url = "http://localhost"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_invalid_hostname(self):
+        """
+        Test the is_url_safe function with an invalid hostname.
+        """
+        url = "http://invalid.hostname"
+        self.assertFalse(is_url_safe(url))
 
 
 if __name__ == "__main__":
