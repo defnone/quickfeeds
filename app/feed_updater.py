@@ -103,16 +103,25 @@ def update_feed(feed, user):
                 else None
             )
 
-            if hasattr(entry, "published_parsed"):
-                pub_date = datetime(*entry.published_parsed[:6])
-            elif hasattr(entry, "updated_parsed"):
-                pub_date = datetime(*entry.updated_parsed[:6])
-            else:
-                logging.error(
-                    "Entry is missing 'published_parsed' and 'updated_parsed' \
-                        attributes. Skipping entry."
+            try:
+                if hasattr(entry, "published_parsed"):
+                    pub_date = datetime(*entry.published_parsed[:6])
+                elif hasattr(entry, "updated_parsed"):
+                    pub_date = datetime(*entry.updated_parsed[:6])
+                else:
+                    pub_date = datetime.now()
+                    logging.warning(
+                        "Entry is missing 'published_parsed' and \
+                            'updated_parsed' attributes. Using \
+                                current date and time."
+                    )
+            except Exception:
+                pub_date = datetime.now()
+                logging.warning(
+                    "Error parsing date for entry %s. \
+                        Using current date and time.",
+                    entry.link,
                 )
-                continue
 
             enclosure_html = ""
             if "enclosures" in entry:
