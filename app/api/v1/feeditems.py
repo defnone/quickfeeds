@@ -47,7 +47,7 @@ def get_items(query, limit, last_item_id):
     try:
         items = query.limit(limit).all()
     except SQLAlchemyError as e:
-        logging.error(f"Error fetching items: {e}")
+        logging.error("Error fetching items: %s", e)
         return []
     return items
 
@@ -64,7 +64,7 @@ def create_response(items, user_timezone):
     - JSON response with serialized items
     """
     item_ids = [item.id for item in items]
-    logging.debug(f"Returned item IDs: {item_ids}")
+    logging.debug("Returned item IDs: %s", item_ids)
     return jsonify([serialize_item(item, user_timezone) for item in items])
 
 
