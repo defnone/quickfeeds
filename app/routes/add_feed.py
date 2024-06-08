@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import feedparser
 import feedfinder2
@@ -137,13 +138,19 @@ def add_feed():
             summary = clean_summary(summary)
 
             # Handle the publication date of the feed entry
-            pub_date = entry.get("published")
-            if pub_date:
-                pub_date = parser.parse(pub_date, tzinfos=tzinfos)
-                if pub_date.tzinfo is None:
-                    pub_date = pytz.utc.localize(pub_date)
-                else:
-                    pub_date = pub_date.astimezone(pytz.utc)
+            pub_date = None
+            if hasattr(entry, "published_parsed"):
+                pub_date = datetime(*entry.published_parsed[:6])
+            elif hasattr(entry, "updated_parsed"):
+                pub_date = datetime(*entry.updated_parsed[:6])
+            else:
+                pub_date_str = entry.get("published") or entry.get("updated")
+                if pub_date_str:
+                    pub_date = parser.parse(pub_date_str, tzinfos=tzinfos)
+                    if pub_date.tzinfo is None:
+                        pub_date = pytz.utc.localize(pub_date)
+                    else:
+                        pub_date = pub_date.astimezone(pytz.utc)
 
             # Handle the author of the feed entry
             creator = entry.get("author") or (

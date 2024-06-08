@@ -102,7 +102,17 @@ def update_feed(feed, user):
                 if entry.get("authors")
                 else None
             )
-            pub_date = datetime(*entry.published_parsed[:6])
+
+            if hasattr(entry, "published_parsed"):
+                pub_date = datetime(*entry.published_parsed[:6])
+            elif hasattr(entry, "updated_parsed"):
+                pub_date = datetime(*entry.updated_parsed[:6])
+            else:
+                logging.error(
+                    "Entry is missing 'published_parsed' and 'updated_parsed' \
+                        attributes. Skipping entry."
+                )
+                continue
 
             enclosure_html = ""
             if "enclosures" in entry:
