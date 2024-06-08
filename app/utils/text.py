@@ -1,6 +1,15 @@
+"""
+This module provides functions for fetching and parsing articles from the web.
+It includes utilities for URL validation, HTTP requests, and HTML parsing.
+"""
+
+import re
+from urllib.parse import urlparse
+import ipaddress
+import socket
+import logging
 import requests
 from bs4 import BeautifulSoup
-import re
 
 
 def fetch_article(url):
@@ -14,15 +23,80 @@ def fetch_article(url):
         str: The HTML content of the article.
 
     Raises:
-        Exception: If the request to fetch the article fails.
+        Exception: If the request to fetch the article fails or URL is not
+        allowed.
     """
-    response = requests.get(url)
-    if response.status_code == 200:
+    # Validate the URL
+    if not is_url_safe(url):
+        logging.error("URL not safe: %s", url)
+        raise ValueError("URL is not allowed.")
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+
+        # Limit the size of the response to 1 MB
+        if len(response.content) > 1024 * 1024:
+            logging.error("Response content is too large: %s", url)
+            raise ValueError("Response content is too large.")
+
         return response.text
-    else:
-        raise Exception(
-            f"Failed to fetch article. Status code: {response.status_code}"
+
+    except requests.RequestException as e:
+        logging.error("Failed to fetch article: %s", str(e))
+        raise requests.RequestException(
+            f"Failed to fetch article. Error: {str(e)}"
         )
+
+
+def is_url_safe(url):
+    """
+    Checks if a given URL is safe to use.
+
+    A URL is considered safe if:
+    - It has a scheme of either "http" or "https".
+    - The hostname is not private (e.g. 10.0.0.0/8, 172.16.0.0/12,
+    192.168.0.0/16) and not localhost.
+    - The hostname can be resolved to an IP address.
+
+    Args:
+        url (str): The URL to check.
+
+    Returns:
+        bool: True if the URL is safe, False otherwise.
+    """
+    try:
+        parsed_url = urlparse(url)
+
+        if parsed_url.scheme not in ("http", "https"):
+            logging.error("Invalid scheme: %s", parsed_url.scheme)
+            return False
+
+        # Parse the netloc to get the hostname
+        hostname = parsed_url.hostname
+        if hostname is None:
+            logging.error("Hostname could not be parsed")
+            return False
+
+        # Resolve the hostname to an IP address
+        try:
+            ip = socket.gethostbyname(hostname)
+            ip_addr = ipaddress.ip_address(ip)
+        except (socket.gaierror, ValueError) as e:
+            logging.error("Failed to resolve hostname: %s", hostname)
+            return False
+
+        # Disallow private IP addresses and localhost
+        if ip_addr.is_private or ip_addr.is_loopback:
+            logging.error(
+                "Private IP or loopback address detected: %s", ip_addr
+            )
+            return False
+
+        return True
+    except ValueError:
+        logging.error("ValueError occurred")
+        return False
 
 
 def parse_article(html_content):
@@ -44,7 +118,8 @@ def parse_article(html_content):
 
 def get_text_from_url(url):
     """
-    Fetch the HTML content of an article at the given URL and parse it to extract the title and text.
+    Fetch the HTML content of an article at the given URL and parse it to
+    extract the title and text.
 
     Args:
         url (str): The URL of the article to fetch and parse.
