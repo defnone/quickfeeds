@@ -6,12 +6,16 @@ from app import db
 
 
 class MockFeed:
+    """A mock class to simulate a feed."""
+
     def __init__(self):
         self.feed = {"title": "Test Feed"}
         self.entries = [MockEntry()]
 
 
 class MockEntry:
+    """A mock class to simulate a feed entry."""
+
     def __init__(self):
         self.title = "Test Entry"
         self.link = "http://example.com/entry"
@@ -22,30 +26,33 @@ class MockEntry:
         self.authors = [{"name": "Test Author"}]
 
     def __getitem__(self, key):
-        print(f"Accessing key: {key}")  # Отладочное сообщение
+        """Simulate dictionary access for mock entry."""
+        print(f"Accessing key: {key}")  # Debug message
         if isinstance(key, int):
-            return self.authors[key]  # Возвращаем автора по индексу
+            return self.authors[key]  # Return author by index
         return getattr(self, key)
 
     def get(self, key, default=None):
+        """Simulate dictionary 'get' method for mock entry."""
         return getattr(self, key, default)
 
 
 @pytest.fixture
 def create_user(client):
-    """Фикстура для создания тестового пользователя"""
+    """Fixture to create a test user."""
     response = client.post(
         "/register", data={"username": "testuser", "password": "testpassword"}
     )
     assert response.status_code in (
         200,
         302,
-    )  # Разрешаем как 200, так и 302 статус
+    )  # Allow both 200 and 302 status codes
 
 
 def test_no_site_url(client, auth, create_user):
+    """Test case to handle missing site URL."""
     with client.application.app_context():
-        # Логинимся под тестовым пользователем
+        # Log in with the test user
         auth.login()
 
         response = client.post("/add_feed", data={}, follow_redirects=True)
@@ -54,11 +61,12 @@ def test_no_site_url(client, auth, create_user):
 
 
 def test_add_feed_success(client, auth, create_user, mocker):
+    """Test case to successfully add a feed."""
     with client.application.app_context():
-        # Логинимся под тестовым пользователем
+        # Log in with the test user
         auth.login()
 
-        # Мокаем функции feedfinder2 и feedparser
+        # Mock feedfinder2 and feedparser functions
         mocker.patch(
             "feedfinder2.find_feeds", return_value=["http://example.com/feed"]
         )
@@ -74,12 +82,12 @@ def test_add_feed_success(client, auth, create_user, mocker):
         )
         assert response.status_code == 200
 
-        # Добавим вывод для отладки
+        # Debug output
         print(response.json)
 
         assert response.json["success"] == True
 
-        # Проверяем, что фид и элемент фида добавлены в базу данных
+        # Verify feed and feed item are added to the database
         feed = Feed.query.filter_by(url="http://example.com/feed").first()
         assert feed is not None
         assert feed.title == "Test Feed"
@@ -92,18 +100,19 @@ def test_add_feed_success(client, auth, create_user, mocker):
 
 
 def test_feed_already_exists(client, auth, create_user, mocker):
+    """Test case to handle already existing feed."""
     with client.application.app_context():
-        # Логинимся под тестовым пользователем
+        # Log in with the test user
         auth.login()
 
-        # Добавляем фид в базу данных
+        # Add an existing feed to the database
         existing_feed = Feed(
             url="http://example.com/feed", title="Existing Feed", user_id=1
         )
         db.session.add(existing_feed)
         db.session.commit()
 
-        # Мокаем функции feedfinder2 и feedparser
+        # Mock feedfinder2 and feedparser functions
         mocker.patch(
             "feedfinder2.find_feeds", return_value=["http://example.com/feed"]
         )
