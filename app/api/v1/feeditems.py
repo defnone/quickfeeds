@@ -93,7 +93,7 @@ def get_feed_items():
 
     query = (
         FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id)
-        .filter(Feed.user_id == current_user.id, FeedItem.read == False)
+        .filter(Feed.user_id == current_user.id, FeedItem.read.is_(False))
         .order_by(FeedItem.pub_date.desc())
     )
 
@@ -162,7 +162,7 @@ def get_category_feed_items(cat_id):
         .filter(
             Feed.category_id == cat_id,
             Feed.user_id == current_user.id,
-            FeedItem.read == False,
+            FeedItem.read.is_(False),
         )
         .order_by(FeedItem.pub_date.desc())
     )
@@ -237,7 +237,7 @@ def get_specific_feed_items(cat_id, feed_id):
             Feed.category_id == cat_id,
             Feed.id == feed_id,
             Feed.user_id == current_user.id,
-            FeedItem.read == False,
+            FeedItem.read.is_(False),
         )
         .order_by(FeedItem.pub_date.desc())
     )
