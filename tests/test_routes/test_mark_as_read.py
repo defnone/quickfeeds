@@ -15,7 +15,7 @@ class MarkAsReadTestCase(TestCase):
         Returns:
             Flask app instance configured for testing.
         """
-        app = create_app("testing")  # or provide your testing configurations
+        app = create_app("testing")
         return app
 
     def setUp(self):
