@@ -5,7 +5,7 @@
     x-data="{ open: false }"
     x-init="
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => open = true, 100);
+            setTimeout(() => open = true, 100); setTimeout(() => open = false, 10100);
         });
     "
     x-show="open"
