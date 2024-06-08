@@ -27,21 +27,19 @@ async function fetchCategoriesAndBlogs() {
             if (category.feeds.length > 0) {
                 let categoryHTML = `<p class="text-base mt-6 mb-1 font-medium text-gray-200"><a href="/category/${category.id}">${category.name}</a></p>`;
                 category.feeds.forEach((feedData) => {
+                    let feedPath = `/category/${category.id}/feed/${feedData.feed.id}`;
+                    let feedPathAll = `/category/${category.id}/feed/${feedData.feed.id}/all`;
+                    let isActiveFeed =
+                        window.location.pathname === feedPath ||
+                        window.location.pathname === feedPathAll;
+
                     let feedHTML = `<div x-data="{ open: false, editMode: false, title: '${
                         feedData.feed.title
                     }', menuOpen: false }" class="">
                                 <div class="flex w-full" @mouseover="open = true" @mouseout="open = false">
                                     <div class="flex flex-row w-full">
-                                        <div :class="{ 'active-feed': window.location.pathname.includes('/category/${
-                                            category.id
-                                        }/feed/${
-                        feedData.feed.id
-                    }'), 'block text-sm mt-1 mb-1 pt-1 pr-2 text-gray-400 flex-grow': !window.location.pathname.includes('/category/${
-                        category.id
-                    }/feed/${feedData.feed.id}') }">
-                                            <a x-show="!editMode" class="hover:text-white" href="/category/${
-                                                category.id
-                                            }/feed/${feedData.feed.id}">${
+                                        <div :class="{ 'active-feed': ${isActiveFeed}, 'block text-sm mt-1 mb-1 pt-1 pr-2 text-gray-400 flex-grow': !${isActiveFeed} }">
+                                            <a x-show="!editMode" class="hover:text-white" href="${feedPath}">${
                         feedData.feed.title.length > 28
                             ? feedData.feed.title.substring(0, 25) + '...'
                             : feedData.feed.title
