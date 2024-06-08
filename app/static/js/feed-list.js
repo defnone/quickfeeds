@@ -1,5 +1,10 @@
+// This variable is used to pause or resume updates
 let pauseUpdate = false;
 
+/**
+ * Toggles the pause state of updates.
+ * If updates were paused, they are resumed and vice versa.
+ */
 function toggleUpdates() {
     pauseUpdate = !pauseUpdate;
     if (!pauseUpdate) {
@@ -7,15 +12,24 @@ function toggleUpdates() {
     }
 }
 
+/**
+ * Pauses the updates.
+ */
 function pauseUpdates() {
     pauseUpdate = true;
 }
 
+/**
+ * Resumes the updates and triggers a data update.
+ */
 function resumeUpdates() {
     pauseUpdate = false;
     updateData();
 }
 
+/**
+ * Fetches categories and blogs from the API and updates the UI accordingly.
+ */
 async function fetchCategoriesAndBlogs() {
     try {
         const response = await fetch('/api/categories_and_blogs');
@@ -98,10 +112,13 @@ async function fetchCategoriesAndBlogs() {
             }
         });
     } catch (error) {
-        console.error('Ошибка при получении категорий и блогов:', error);
+        console.error('Error fetching categories and blogs:', error);
     }
 }
 
+/**
+ * Event listener to close all menus when clicking outside of them.
+ */
 document.addEventListener('click', function (event) {
     const isClickInsideMenu = event.target.closest('.menu');
     if (!isClickInsideMenu) {
@@ -109,6 +126,9 @@ document.addEventListener('click', function (event) {
     }
 });
 
+/**
+ * Closes all open menus and resumes updates.
+ */
 function closeAllMenus() {
     document.querySelectorAll('[x-data]').forEach((el) => {
         el.__x.$data.menuOpen = false;
@@ -116,6 +136,9 @@ function closeAllMenus() {
     resumeUpdates();
 }
 
+/**
+ * Fetches the last synchronization time from the API and updates the UI.
+ */
 async function fetchLastSync() {
     try {
         const response = await fetch('/api/last_sync');
@@ -123,13 +146,16 @@ async function fetchLastSync() {
 
         document.getElementById('last_sync').innerText = data.last_sync;
     } catch (error) {
-        console.error(
-            'Ошибка при получении времени последней синхронизации:',
-            error
-        );
+        console.error('Error fetching last sync time:', error);
     }
 }
 
+/**
+ * Displays a message to the user.
+ *
+ * @param {string} message - The message to display.
+ * @param {string} type - The type of message ('error' or 'success').
+ */
 function showMessage(message, type) {
     const messageContainer = document.createElement('div');
     messageContainer.innerHTML = `
@@ -160,6 +186,12 @@ function showMessage(message, type) {
     document.body.appendChild(messageContainer);
 }
 
+/**
+ * Updates the title of a feed.
+ *
+ * @param {string} feedId - The ID of the feed to update.
+ * @param {string} title - The new title of the feed.
+ */
 async function updateFeed(feedId, title) {
     try {
         const response = await fetch(`/api/feeds/${feedId}`, {
@@ -175,20 +207,26 @@ async function updateFeed(feedId, title) {
             throw new Error(errorData.error || 'Error updating feed');
         }
 
-        // Обновляем только название фида на странице без перезагрузки
+        // Update the feed title on the page without reloading
         document.querySelector(`a[href$="/feed/${feedId}"]`).textContent =
             title;
 
-        // Показываем сообщение об успешном обновлении
+        // Show a success message
         showMessage('Feed has been successfully renamed', 'success');
     } catch (error) {
         showMessage(error.message, 'error');
     }
 }
 
+/**
+ * Updates the category of a feed.
+ *
+ * @param {string} feedId - The ID of the feed to update.
+ * @param {string} categoryId - The ID of the new category.
+ */
 async function updateFeedCategory(feedId, categoryId) {
     try {
-        pauseUpdates(); // Остановить обновление данных
+        pauseUpdates(); // Pause data updates
 
         const response = await fetch(`/api/feeds/${feedId}/category`, {
             method: 'PUT',
@@ -203,18 +241,23 @@ async function updateFeedCategory(feedId, categoryId) {
             throw new Error(errorData.error || 'Error updating feed category');
         }
 
-        // Обновляем данные после изменения категории фида
+        // Fetch and update the data after changing the category
         await fetchCategoriesAndBlogs();
 
-        // Показываем сообщение об успешном изменении категории
+        // Show a success message
         showMessage('Feed category updated successfully', 'success');
     } catch (error) {
         showMessage(error.message, 'error');
     } finally {
-        resumeUpdates(); // Возобновить обновление данных после завершения операции
+        resumeUpdates(); // Resume data updates after the operation is complete
     }
 }
 
+/**
+ * Deletes a feed.
+ *
+ * @param {string} feedId - The ID of the feed to delete.
+ */
 async function deleteFeed(feedId) {
     try {
         const response = await fetch(`/api/feeds/${feedId}`, {
@@ -226,19 +269,23 @@ async function deleteFeed(feedId) {
             throw new Error(errorData.error || 'Error when deleting feed');
         }
 
-        // Обновляем данные после удаления фида
+        // Fetch and update the data after deleting the feed
         await fetchCategoriesAndBlogs();
 
-        // Показываем сообщение об успешном удалении
+        // Show a success message
         showMessage('Feed deleted successfully', 'success');
     } catch (error) {
         showMessage(error.message, 'error');
     }
 }
 
+// Event listeners to pause/resume updates when window focus changes
 window.addEventListener('focus', resumeUpdates);
 window.addEventListener('blur', pauseUpdates);
 
+/**
+ * Fetches and updates the data if the document is visible and updates are not paused.
+ */
 async function updateData() {
     if (!document.hidden && !pauseUpdate) {
         await fetchCategoriesAndBlogs();
@@ -246,11 +293,11 @@ async function updateData() {
     }
 }
 
-document.addEventListener('visibilitychange', updateData);
+// Event listeners for visibility change to update data
 document.addEventListener('visibilitychange', updateData);
 
-// Обновляем данные каждые 5 секунд, если окно активно
+// Update data every 5 seconds if the window is active
 setInterval(updateData, 5000);
 
-// Инициализируем первоначальное получение данных
+// Initialize data fetch on page load
 updateData();
