@@ -54,7 +54,7 @@ Ensure you have Docker and Docker Compose installed on your machine. You can dow
    Open your terminal and run the following command to download the `docker-compose.yml` file from the repository:
 
    ```bash
-   curl -O https://github.com/defnone/quickfeeds/raw/main/docker-compose.yml
+   curl -O https://raw.githubusercontent.com/defnone/quickfeeds/main/docker-compose.yml
    ```
 
 2. **Run the application**
