@@ -125,6 +125,55 @@ class TestArticleUtils(unittest.TestCase):
         url = "http://invalid.hostname"
         self.assertFalse(is_url_safe(url))
 
+    def test_is_url_safe_ipv6_local(self):
+        """
+        Test the is_url_safe function with a local IPv6 address.
+        """
+        url = "http://[::1]"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_ipv6_private(self):
+        """
+        Test the is_url_safe function with a private IPv6 address.
+        """
+        url = "http://[fd00::1]"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_reserved_domain(self):
+        """
+        Test the is_url_safe function with a reserved domain name.
+        """
+        url = "http://example.test"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_obfuscated_ip(self):
+        """
+        Test the is_url_safe function with an obfuscated IP address.
+        """
+        url = "http://2130706433"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_mixed_case_scheme(self):
+        """
+        Test the is_url_safe function with a mixed-case scheme.
+        """
+        url = "hTTp://example.com"
+        self.assertTrue(is_url_safe(url))
+
+    def test_is_url_safe_javascript_scheme(self):
+        """
+        Test the is_url_safe function with a javascript: scheme.
+        """
+        url = "javascript:alert(1)"
+        self.assertFalse(is_url_safe(url))
+
+    def test_is_url_safe_data_scheme(self):
+        """
+        Test the is_url_safe function with a data: scheme.
+        """
+        url = "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="
+        self.assertFalse(is_url_safe(url))
+
 
 if __name__ == "__main__":
     unittest.main()
