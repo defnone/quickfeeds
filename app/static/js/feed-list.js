@@ -159,7 +159,8 @@ async function fetchLastSync() {
 function showMessage(message, type) {
     const messageContainer = document.createElement('div');
     messageContainer.innerHTML = `
-            <div @click="open = false" x-data="{ open: false }" x-init="setTimeout(() => open = true, 100)" x-show="open" 
+            <div @click="open = false" x-data="{ open: false }" x-init="setTimeout(() => open = true, 100); setTimeout(() => open = false, 10100);" 
+                x-show="open" 
                 x-transition:enter="transition ease-out duration-300 transform"
                 x-transition:enter-start="opacity-0 translate-x-full"
                 x-transition:enter-end="opacity-100 translate-x-0"
