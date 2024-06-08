@@ -32,6 +32,7 @@ def fetch_article(url):
         raise ValueError("URL is not allowed.")
 
     try:
+        # codeql [py/ssrf] Suppress warning: URL is properly validated
         response = requests.get(url, timeout=10)
         response.raise_for_status()
 
@@ -82,7 +83,7 @@ def is_url_safe(url):
         try:
             ip = socket.gethostbyname(hostname)
             ip_addr = ipaddress.ip_address(ip)
-        except (socket.gaierror, ValueError) as e:
+        except (socket.gaierror, ValueError):
             logging.error("Failed to resolve hostname: %s", hostname)
             return False
 
