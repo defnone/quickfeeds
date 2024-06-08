@@ -73,6 +73,10 @@ def is_url_safe(url):
             logging.error("Invalid scheme: %s", parsed_url.scheme)
             return False
 
+        if not parsed_url.netloc:
+            logging.error("Invalid netloc: %s", parsed_url.netloc)
+            return False
+
         # Parse the netloc to get the hostname
         hostname = parsed_url.hostname
         if hostname is None:
