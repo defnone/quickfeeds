@@ -17,7 +17,7 @@ Base = declarative_base()
 # Fixture for creating the application context
 @pytest.fixture
 def app():
-    app = create_app()
+    app = create_app(config_name="testing")
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     app.config["TESTING"] = True
     with app.app_context():
