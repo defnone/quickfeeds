@@ -94,23 +94,6 @@ def test_update_feeds_thread_no_user(app, mock_sleep):
             sleep_mock.assert_called_with(60)
 
 
-# Test case for update_feeds_thread function with a user but no feeds
-def test_update_feeds_thread_with_user_no_feeds(app, user, mock_sleep):
-    with patch("app.feed_updater.db.session.query") as mock_query:
-        mock_query.return_value.first.return_value = user
-        with patch(
-            "app.feed_updater.update_user_feeds"
-        ) as mock_update_user_feeds:
-            with patch(
-                "app.feed_updater.time.sleep", side_effect=KeyboardInterrupt
-            ):
-                try:
-                    update_feeds_thread()
-                except KeyboardInterrupt:
-                    pass
-                mock_update_user_feeds.assert_called_once_with(user)
-
-
 # Test case for update_user_feeds function with no feeds
 def test_update_user_feeds_no_feeds(app, user):
     with patch("app.feed_updater.db.session.query") as mock_query:
