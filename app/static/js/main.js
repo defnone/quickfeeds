@@ -76,9 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.status === 'error') {
-                            showMessage('Error summarizing the text', 'error');
-                            feedContent.innerHTML =
-                                '<div class="error">Error summarizing the text.</div>';
+                            showMessage(
+                                'Error summarizing the text. Check Groq API in <a class="underline" href="/settings">Settings</a>.',
+                                'error'
+                            );
+                            feedContent.innerHTML = originalContent;
                         } else {
                             feedContent.innerHTML = `
                             <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)" x-show="show"
