@@ -11,11 +11,17 @@ app = create_app()
 
 
 def update_feeds_thread():
+    """
+    This function continuously updates the feeds for the users.
+    It runs in a loop, checking for new feed items at regular intervals,
+    and updating the database with new items.
+    """
     with app.app_context():
         logging.info("Starting feed update thread")
 
         while True:
             try:
+                # Fetch the first user from the database
                 user = db.session.query(User).first()
                 if not user:
                     logging.info(
@@ -36,13 +42,14 @@ def update_feeds_thread():
                     minutes=user.settings.update_interval
                 )
 
+                # Check if the update interval has passed
                 if datetime.now() - last_sync >= update_interval:
                     logging.info("Updating feeds for user %s", user.username)
-                    start_time = time.time()  # Начало измерения времени
+                    start_time = time.time()  # Start measuring time
                     update_user_feeds(user)
                     user.last_sync = datetime.now()
                     db.session.commit()
-                    end_time = time.time()  # Конец измерения времени
+                    end_time = time.time()  # End measuring time
                     elapsed_time = end_time - start_time
                     logging.info(
                         "Feeds updated for user %s in %.2f seconds",
@@ -69,6 +76,12 @@ def update_feeds_thread():
 
 
 def update_user_feeds(user):
+    """
+    Update feeds for a specific user.
+
+    Args:
+        user (User): The user whose feeds need to be updated.
+    """
     feeds = db.session.query(Feed).filter_by(user_id=user.id).all()
     if not feeds:
         logging.info("User %s has no feeds to update", user.username)
@@ -82,6 +95,13 @@ def update_user_feeds(user):
 
 
 def update_feed(feed, user):
+    """
+    Update a specific feed for a user.
+
+    Args:
+        feed (Feed): The feed to be updated.
+        user (User): The user who owns the feed.
+    """
     logging.info("Updating feed %s", feed.title)
     feed_data = feedparser.parse(feed.url, sanitize_html=False)
     entries = feed_data.entries
@@ -123,6 +143,7 @@ def update_feed(feed, user):
                     entry.link,
                 )
 
+            # Handle enclosures in the feed entry
             enclosure_html = ""
             if "enclosures" in entry:
                 for enclosure in entry.enclosures:
@@ -142,10 +163,10 @@ def update_feed(feed, user):
                             enclosure_html += (
                                 f'<video controls src="{url}"></video>'
                             )
+
             # Handle media content in the feed entry
             media_content_html = ""
             if "media_content" in entry:
-
                 for media_content in entry.media_content:
                     url = media_content.get("url")
                     medium = media_content.get("medium")
