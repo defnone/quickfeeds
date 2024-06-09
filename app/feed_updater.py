@@ -1,4 +1,5 @@
 import time
+import http.client
 import logging
 from datetime import datetime, timedelta
 import feedparser
@@ -107,7 +108,16 @@ def update_feed(feed, user):
         user (User): The user who owns the feed.
     """
     logging.info("Updating feed %s", feed.title)
-    feed_data = feedparser.parse(feed.url, sanitize_html=False)
+
+    try:
+        feed_data = feedparser.parse(feed.url, sanitize_html=False)
+    except http.client.RemoteDisconnected:
+        logging.error(
+            "Failed to update feed %s due to connection issues. \
+                Moving on to the next feed.",
+            feed.url,
+        )
+        return
     entries = feed_data.entries
 
     for entry in entries:
