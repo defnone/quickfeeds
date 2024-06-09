@@ -23,12 +23,16 @@ def update_feeds_thread():
             try:
                 # Fetch the first user from the database
                 user = db.session.query(User).first()
-                if not user:
+                if user:
+                    update_user_feeds(user)
+                else:
                     logging.info(
                         "User not found. Checking again in 60 seconds."
                     )
-                    time.sleep(60)
-                    continue
+                time.sleep(60)
+            except Exception as e:
+                logging.error(f"An error occurred: {e}")
+                time.sleep(60)
 
                 if not hasattr(user, "id"):
                     logging.error(
