@@ -4,9 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const limit = 5;
     let loading = false;
 
+    // Initial check for unread count and set interval to check every 3 minutes
     checkUnreadCount();
     setInterval(checkUnreadCount, 180000);
 
+    // Event listener for AI Summarize button click
     document
         .getElementById('feed-container')
         .addEventListener('click', function (event) {
@@ -15,9 +17,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const feedItem = btn.closest('.feed-item');
                 const itemTitle = feedItem.querySelector('.item-title');
 
+                // Scroll to the item position with an offset
                 const itemPosition =
                     itemTitle.getBoundingClientRect().top + window.pageYOffset;
-
                 const offsetPercentage = 20;
                 const offsetPixels =
                     window.innerHeight * (offsetPercentage / 100);
@@ -30,9 +32,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const feedContent = feedItem.querySelector('.feed-content');
                 const originalContent = feedContent.innerHTML;
-
                 const isCollapsed = feedContent.style.overflow === 'hidden';
 
+                // Toggle content visibility
                 if (isCollapsed) {
                     feedContent.style.maxHeight = 'none';
                     feedContent.style.overflow = 'visible';
@@ -43,27 +45,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     button.classList.add('hidden');
                 }
 
+                // Show loading spinner while fetching the summary
                 feedContent.innerHTML = `<div class="flex justify-center items-center w-full min-h-96">
-            
-            <svg width="54" height="54" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <filter id="spinner-gF01">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="y"/>
-                        <feColorMatrix in="y" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 18 -7" result="z"/>
-                        <feBlend in="SourceGraphic" in2="z"/>
-                    </filter>
-                </defs>
-                <g class="spinner_LvYV" filter="url(#spinner-gF01)">
-                    <circle class="spinner_8XMC" cx="5" cy="12" r="4"/>
-                    <circle class="spinner_WWWR" cx="19" cy="12" r="4"/>
-                </g>
-            </svg>
-            
-            
+                <svg width="54" height="54" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="spinner-gF01">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="y"/>
+                            <feColorMatrix in="y" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 18 -7" result="z"/>
+                            <feBlend in="SourceGraphic" in2="z"/>
+                        </filter>
+                    </defs>
+                    <g class="spinner_LvYV" filter="url(#spinner-gF01)">
+                        <circle class="spinner_8XMC" cx="5" cy="12" r="4"/>
+                        <circle class="spinner_WWWR" cx="19" cy="12" r="4"/>
+                    </g>
+                </svg>
             </div>`;
 
                 const postUrl = feedItem.querySelector('.item-title a').href;
 
+                // Fetch the summary from the API
                 fetch('/api/summarize', {
                     method: 'POST',
                     credentials: 'include',
@@ -80,13 +81,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 '<div class="error">Error summarizing the text.</div>';
                         } else {
                             feedContent.innerHTML = `
-                    <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)" x-show="show"
-                    x-transition:enter="transition ease-out duration-1000"
-                    x-transition:enter-start="transform opacity-0 scale-90"
-                    x-transition:enter-end="transform opacity-100 scale-100"
-                    >
-                    <p>${data.summary}</p>
-                </div>`;
+                            <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)" x-show="show"
+                            x-transition:enter="transition ease-out duration-1000"
+                            x-transition:enter-start="transform opacity-0 scale-90"
+                            x-transition:enter-end="transform opacity-100 scale-100">
+                                <p>${data.summary}</p>
+                            </div>`;
                         }
                     })
                     .catch((error) => {
@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+    // Function to construct the API path based on current URL
     function getApiPath() {
         const path = window.location.pathname;
         const basePath = '/api/feeditems';
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${apiPath}?limit=${limit}${lastItemId ? `&last_item_id=${lastItemId}` : ''}`;
     }
 
+    // Function to load more items from the API
     function loadMoreItems() {
         if (loading) return;
         loading = true;
@@ -148,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         itemElement.className = 'feed-item';
                         itemElement.dataset.id = item.id;
                         itemElement.dataset.read = item.read;
+
                         let options = {
                             weekday: 'long',
                             year: 'numeric',
@@ -165,37 +168,36 @@ document.addEventListener('DOMContentLoaded', function () {
                             item.creator !== null ? item.creator : '';
 
                         itemElement.innerHTML = `
-                        <div class="tb-feed-name">${item.feed_title}</div>
-                        <h1 class="item-title"><a class="hover:text-blue-200" target="_blank" rel="noopener" href="${item.link}">${item.title}</a></h1>
-                        <div class="flex-col md:flex-row flex">
-                            <div class="tb-feed-date">${formattedDate}</div> 
-                            <div class="tb-feed-author">${creatorContent}</div>
-                        </div>
-                        <div x-data="{ expanded: false }" class="feed-content relative" :class="{ 'overflow-hidden': !expanded, 'max-h-none overflow-visible': expanded }">
-                        ${item.summary}
-                        <div class="absolute bottom-0 left-0 w-full h-60 bg-gradient-to-t from-slate-800 via-slate-800/90 to-slate-800/0 pointer-events-none" x-show="!expanded"></div>
-                        <button class="absolute bottom-0 left-0 w-full text-center py-2 font-bold text-white transition-colors focus:outline-none" x-show="!expanded" @click="expanded = true">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-11 w-15 h-15 ml-auto mr-auto shadow-2xl shadow-stone-950 bg-black transition duration-50 hover:bg-stone-700 mb-4 p-3 rounded-full gradient-arrow">
-                                <path fill-rule="evenodd" d="M11.47 13.28a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L12 11.69 5.03 4.72a.75.75 0 0 0-1.06 1.06l7.5 7.5Z" clip-rule="evenodd" />
-                                <path fill-rule="evenodd" d="M11.47 19.28a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 1 0-1.06-1.06L12 17.69l-6.97-6.97a.75.75 0 0 0-1.06 1.06l7.5 7.5Z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        </div>
+                            <div class="tb-feed-name">${item.feed_title}</div>
+                            <h1 class="item-title"><a class="hover:text-blue-200" target="_blank" rel="noopener noreferrer" href="${item.link}">${item.title}</a></h1>
+                            <div class="flex-col md:flex-row flex">
+                                <div class="tb-feed-date">${formattedDate}</div> 
+                                <div class="tb-feed-author">${creatorContent}</div>
+                            </div>
+                            <div x-data="{ expanded: false }" class="feed-content relative" :class="{ 'overflow-hidden': !expanded, 'max-h-none overflow-visible': expanded }">
+                                ${item.summary}
+                                <div class="absolute bottom-0 left-0 w-full h-60 bg-gradient-to-t from-slate-800 via-slate-800/90 to-slate-800/0 pointer-events-none" x-show="!expanded"></div>
+                                <button class="absolute bottom-0 left-0 w-full text-center py-2 font-bold text-white transition-colors focus:outline-none" x-show="!expanded" @click="expanded = true">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-11 w-15 h-15 ml-auto mr-auto shadow-2xl shadow-stone-950 bg-black transition duration-50 hover:bg-stone-700 mb-4 p-3 rounded-full gradient-arrow">
+                                        <path fill-rule="evenodd" d="M11.47 13.28a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 0 0-1.06-1.06L12 11.69 5.03 4.72a.75.75 0 0 0-1.06 1.06l7.5 7.5Z" clip-rule="evenodd" />
+                                        <path fill-rule="evenodd" d="M11.47 19.28a.75.75 0 0 0 1.06 0l7.5-7.5a.75.75 0 1 0-1.06-1.06L12 17.69l-6.97-6.97a.75.75 0 0 0-1.06 1.06l7.5 7.5Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
 
-                        <!-- AI Summarize -->
-                        <div class="flex  ml-6 xl:ml-16 mr-6 mt-4 justify-start max-w-3xl">
-                        <div x-data="{ open: false }" @mouseover="open = true" @mouseout="open = false" class="relative">
-                        <button class="ai-summarize-btn flex items-center justify-center rounded-lg border border-gray-800 hover:border-gray-700 focus:outline-none px-3 py-2 text-gray-400 transition-all duration-500 overflow-hidden" :class="{'w-32': open, 'w-14': !open}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
-                                <path fill-rule="evenodd" d="M2.625 6.75a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875 0A.75.75 0 0 1 8.25 6h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75ZM2.625 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0ZM7.5 12a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12A.75.75 0 0 1 7.5 12Zm-4.875 5.25a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875 0a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
-                            </svg>
-                            <span x-show="open" class=" text-nowrap text-base">AI Summarize</span>
-                        </button>
-                        </div>
-                        </div>
-                    `;
+                            <!-- AI Summarize -->
+                            <div class="flex  ml-6 xl:ml-16 mr-6 mt-4 justify-start max-w-3xl">
+                                <div x-data="{ open: false }" @mouseover="open = true" @mouseout="open = false" class="relative">
+                                    <button class="ai-summarize-btn flex items-center justify-center rounded-lg border border-gray-800 hover:border-gray-700 focus:outline-none px-3 py-2 text-gray-400 transition-all duration-500 overflow-hidden" :class="{'w-32': open, 'w-14': !open}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                                            <path fill-rule="evenodd" d="M2.625 6.75a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875 0A.75.75 0 0 1 8.25 6h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75ZM2.625 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0ZM7.5 12a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12A.75.75 0 0 1 7.5 12Zm-4.875 5.25a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875 0a.75.75 0 0 1 .75-.75h12a.75.75 0 0 1 0 1.5h-12a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span x-show="open" class=" text-nowrap text-base">AI Summarize</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
                         feedContainer.appendChild(itemElement);
-
                         handleOverflow(itemElement);
                     });
 
@@ -209,6 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    // Function to handle overflow of feed content
     function handleOverflow(item) {
         const content = item.querySelector('.feed-content');
         const windowHeight = window.innerHeight;
@@ -245,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Function to handle scroll event for loading more items
     function handleScroll() {
         const { scrollTop, scrollHeight, clientHeight } =
             document.documentElement;
@@ -266,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
     btnAll.addEventListener('click', navigateAll);
 });
 
+// Function to set styles for buttons based on the current path
 function setButtonStyles() {
     const currentPath = window.location.pathname;
     const btnDefault = document.getElementById('btnDefault');
@@ -280,6 +285,7 @@ function setButtonStyles() {
     }
 }
 
+// Function to navigate to default feed
 function navigateDefault() {
     const currentPath = window.location.pathname;
     const newPath = modifyPath(currentPath, false);
@@ -304,6 +310,7 @@ function navigateDefault() {
     }
 }
 
+// Function to navigate to all feed
 function navigateAll() {
     const currentPath = window.location.pathname;
     const newPath = modifyPath(currentPath, true);
@@ -328,6 +335,7 @@ function navigateAll() {
     }
 }
 
+// Function to modify the URL path based on the selection (all/unread)
 function modifyPath(path, all) {
     const segments = path.split('/').filter((segment) => segment);
     if (all) {
@@ -343,6 +351,7 @@ function modifyPath(path, all) {
     return '/' + segments.join('/');
 }
 
+// Function to check the count of unread messages
 function checkUnreadCount() {
     fetch('/api/unread-count')
         .then((response) => response.json())
@@ -357,6 +366,7 @@ function checkUnreadCount() {
         );
 }
 
+// Function to update the badge with the unread count
 function updateBadge(count) {
     if ('setAppBadge' in navigator) {
         if (count > 0) {
@@ -373,6 +383,7 @@ function updateBadge(count) {
 
 const readPosts = new Set();
 
+// Function to mark a post as read
 function markAsRead(postId) {
     if (!readPosts.has(postId)) {
         fetch(`/mark_as_read/${postId}`, {
@@ -400,6 +411,7 @@ function markAsRead(postId) {
     }
 }
 
+// Function to mark the last unread post as read
 function markLastUnreadPostAsRead() {
     const feedItems = document.querySelectorAll('.feed-item');
     let lastUnreadItem = null;
@@ -418,6 +430,7 @@ function markLastUnreadPostAsRead() {
     }
 }
 
+// Function to check the visibility of posts and mark them as read if they are visible
 function checkPostsVisibility() {
     const feedItems = document.querySelectorAll('.feed-item');
     const windowHeight = window.innerHeight;
@@ -433,6 +446,7 @@ function checkPostsVisibility() {
     });
 }
 
+// Initialize Alpine.js when document is ready
 document.addEventListener('alpine:init', () => {
     document.getElementById('modal-add').classList.remove('hidden');
     document.getElementById('modal-add').classList.add('flex');
@@ -441,6 +455,7 @@ document.addEventListener('alpine:init', () => {
 let startY;
 let isPulling = false;
 
+// Touch events for pull-to-refresh functionality
 window.addEventListener('touchstart', function (event) {
     if (window.scrollY === 0) {
         startY = event.touches[0].pageY;
