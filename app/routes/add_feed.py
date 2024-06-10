@@ -160,6 +160,12 @@ def add_feed():
                         break
 
             summary = media_content_html + enclosure_html + summary
+
+            # Handle the content of the feed entry
+            if entry.get("content"):
+                entry_content = entry.content[0].value
+                summary += entry_content
+
             summary = clean_summary(summary)
 
             # Handle the publication date of the feed entry
