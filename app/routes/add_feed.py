@@ -51,6 +51,9 @@ def add_feed():
         site_url = request.form["site_url"]
         category_name = request.form.get("category")
 
+        if not site_url.startswith("https://"):
+            site_url = "https://" + site_url.strip("http://")
+
         # Log the received site URL and category name
         logging.info("Received site_url: %s", site_url)
         logging.info("Received category_name: %s", category_name)
