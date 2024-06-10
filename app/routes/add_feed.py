@@ -75,14 +75,14 @@ def add_feed():
 
         feed_url = feeds[0]
 
-        if feed_url and not is_feed(feed_url):
-            logging.error("Invalid RSS feed: %s", feed_url)
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "Invalid RSS feed",
-                }
-            )
+        # if feed_url and not is_feed(feed_url):
+        #     logging.error("Invalid RSS feed: %s", feed_url)
+        #     return jsonify(
+        #         {
+        #             "success": False,
+        #             "error": "Invalid RSS feed",
+        #         }
+        #     )
 
         # Check if the feed already exists in the database
         existing_feed = Feed.query.filter_by(url=feed_url).first()
@@ -161,12 +161,13 @@ def add_feed():
                         break
 
             # Handle the content of the feed entry
-            if "content" in entry:
+            summary = ""
+            if "content" in entry and len(entry["content"][0]["value"]) > 0:
                 summary = entry["content"][0]["value"]
-            elif "summary" in entry:
-                summary = entry["summary"]
             elif "description" in entry:
                 summary = entry["description"]
+            elif "summary" in entry:
+                summary = entry["summary"]
             else:
                 summary = ""
 

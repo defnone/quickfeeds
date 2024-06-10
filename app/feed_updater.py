@@ -184,17 +184,17 @@ def update_feed(feed, user):
                         break
 
             # Handle the content of the feed entry
-            if "content" in entry:
+            summary = ""
+            if "content" in entry and len(entry["content"][0]["value"]) > 0:
                 summary = entry["content"][0]["value"]
-            elif "summary" in entry:
-                summary = entry["summary"]
             elif "description" in entry:
                 summary = entry["description"]
+            elif "summary" in entry:
+                summary = entry["summary"]
             else:
                 summary = ""
 
             summary = media_content_html + enclosure_html + summary
-
             summary = clean_summary(summary)
 
             guid = entry.get("id") or entry.get("guid") or entry.link
