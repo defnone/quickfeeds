@@ -40,6 +40,7 @@ ALLOWED_TAGS = [
     "code",
     "pre",
     "enclosure",
+    "div",
 ]
 
 ALLOWED_ATTRIBUTES = {
@@ -94,7 +95,7 @@ def clean_summary(summary):
 
     # Remove empty links
     for a in soup.find_all("a"):
-        if not a.get_text(strip=True):
+        if not a.get_text(strip=True) and not a.find("img"):
             a.decompose()
 
     # Remove button tags
