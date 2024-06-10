@@ -183,11 +183,17 @@ def update_feed(feed, user):
                         media_content_html += f'<img src="{url}">'
                         break
 
-            summary = media_content_html + enclosure_html + entry.summary
+            # Handle the content of the feed entry
+            if "content" in entry:
+                summary = entry["content"][0]["value"]
+            elif "summary" in entry:
+                summary = entry["summary"]
+            elif "description" in entry:
+                summary = entry["description"]
+            else:
+                summary = ""
 
-            if entry.get("content"):
-                entry_content = entry.content[0].value
-                summary += entry_content
+            summary = media_content_html + enclosure_html + summary
 
             summary = clean_summary(summary)
 

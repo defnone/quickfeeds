@@ -124,7 +124,6 @@ def add_feed():
         db.session.commit()
 
         for entry in feed_data.entries:
-            summary = entry.summary
             enclosure_html = ""
 
             # Handle enclosures in the feed entry
@@ -159,13 +158,17 @@ def add_feed():
                         media_content_html += f'<img src="{url}">'
                         break
 
-            summary = media_content_html + enclosure_html + summary
-
             # Handle the content of the feed entry
-            if entry.get("content"):
-                entry_content = entry.content[0].value
-                summary += entry_content
+            if "content" in entry:
+                summary = entry["content"][0]["value"]
+            elif "summary" in entry:
+                summary = entry["summary"]
+            elif "description" in entry:
+                summary = entry["description"]
+            else:
+                summary = ""
 
+            summary = media_content_html + enclosure_html + summary
             summary = clean_summary(summary)
 
             # Handle the publication date of the feed entry
