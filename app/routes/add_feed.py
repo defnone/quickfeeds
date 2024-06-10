@@ -15,6 +15,16 @@ from app.models import Category, Feed, FeedItem
 add_feed_blueprint = Blueprint("add_feed_route", __name__)
 
 
+def is_feed(url):
+    feed = feedparser.parse(url)
+    if feed.bozo:
+        print(f"FeedParser bozo: {feed.bozo_exception}")
+        return False
+    if "entries" in feed and len(feed.entries) > 0:
+        return True
+    return False
+
+
 @add_feed_blueprint.route("/add_feed", methods=["POST"])
 @login_required
 def add_feed():
@@ -42,20 +52,32 @@ def add_feed():
         category_name = request.form.get("category")
 
         # Log the received site URL and category name
-        logging.info(f"Received site_url: {site_url}")
-        logging.info(f"Received category_name: {category_name}")
+        logging.info("Received site_url: %s", site_url)
+        logging.info("Received category_name: %s", category_name)
 
         # Find the RSS feed from the site URL
-        feeds = feedfinder2.find_feeds(site_url)
-        if not feeds:
+        if not is_feed(site_url):
+            feeds = feedfinder2.find_feeds(site_url)
+            if not feeds:
+                return jsonify(
+                    {
+                        "success": False,
+                        "error": "RSS feed not found on the website",
+                    }
+                )
+        else:
+            feeds = [site_url]
+
+        feed_url = feeds[0]
+
+        if feed_url and not is_feed(feed_url):
+            logging.error("Invalid RSS feed: %s", feed_url)
             return jsonify(
                 {
                     "success": False,
-                    "error": "RSS feed not found on the website",
+                    "error": "Invalid RSS feed",
                 }
             )
-
-        feed_url = feeds[0]
 
         # Check if the feed already exists in the database
         existing_feed = Feed.query.filter_by(url=feed_url).first()
