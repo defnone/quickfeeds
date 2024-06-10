@@ -108,8 +108,7 @@ def update_feed(feed, user):
         feed_data = feedparser.parse(feed.url, sanitize_html=False)
     except http.client.RemoteDisconnected:
         logging.error(
-            "Failed to update feed %s due to connection issues. \
-                Moving on to the next feed.",
+            "Failed to update feed %s due to connection issues. Moving on to the next feed.",
             feed.url,
         )
         return
