@@ -185,6 +185,11 @@ def update_feed(feed, user):
                         break
 
             summary = media_content_html + enclosure_html + entry.summary
+
+            if entry.get("content"):
+                entry_content = entry.content[0].value
+                summary += entry_content
+
             summary = clean_summary(summary)
 
             guid = entry.get("id") or entry.get("guid") or entry.link
