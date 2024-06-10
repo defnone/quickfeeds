@@ -4,10 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const limit = 5;
     let loading = false;
 
-    // Initial check for unread count and set interval to check every 3 minutes
-    checkUnreadCount();
-    setInterval(checkUnreadCount, 180000);
-
     // Event listener for AI Summarize button click
     document
         .getElementById('feed-container')
@@ -351,6 +347,22 @@ function modifyPath(path, all) {
         }
     }
     return '/' + segments.join('/');
+}
+
+// Runs the worker to check the unread count in the background
+if (window.Worker) {
+    const worker = new Worker('/static/js/worker.js');
+
+    worker.addEventListener(
+        'message',
+        function (e) {
+            const unreadCount = e.data;
+            updateBadge(unreadCount);
+        },
+        false
+    );
+
+    worker.postMessage('start');
 }
 
 // Function to check the count of unread messages
