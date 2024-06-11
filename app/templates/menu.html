@@ -151,7 +151,7 @@
                                     <!-- SETTINGS -->
                                     <a
                                         href="/settings"
-                                        class="group relative flex justify-center rounded {% if request.path == '/settings' %}text-gray-50 bg-gray-900 {% else %}text-gray-500 {% endif %} hover:bg-gray-900 hover:text-gray-50 active:bg-gray-900 px-2 py-1.5 active:text-gray-50">
+                                        class="group relative flex justify-center rounded {% if request.path == '/settings' or request.path == '/settings/categories' %}text-gray-50 bg-gray-900 {% else %}text-gray-500 {% endif %} hover:bg-gray-900 hover:text-gray-50 active:bg-gray-900 px-2 py-1.5 active:text-gray-50">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 24 24"
