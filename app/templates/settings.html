@@ -91,7 +91,7 @@
         <div x-data="{ open: false }" class="mt-6 py-4">
             <button @click="open = !open" class="text-xl hover:text-slate-300 focus:outline-none text-gray-100 underline underline-offset-4 font-extrabold ml-5 mt-6">Change password</button>
             <div class="overflow-hidden transition-all duration-600" x-ref="container" x-bind:style="open ? 'max-height: ' + $refs.container.scrollHeight + 'px' : 'max-height: 0px'">
-                <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+                <div class="flex-col mt-5 md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
                     <input
                         type="password"
                         id="new_password"
