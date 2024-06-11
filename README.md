@@ -6,8 +6,10 @@ This is my first software project, developed for personal use.
 It runs on:
 - Flask
 - SQLite
-- Groq API (for article summarization)
+- [Groq](https://github.com/groq/groq-python) API (for article summarization)
 - Google Translate (for translating summarized text)
+- [feedparser](https://github.com/kurtmckee/feedparser)
+- [feedfinder2](https://github.com/dfm/feedfinder2) (for finding links feeds on a website)
 
 The application interface works well as a [Safari web app](https://support.apple.com/en-kw/guide/safari/ibrw9e991864/mac) for both macOS and iOS.
 
