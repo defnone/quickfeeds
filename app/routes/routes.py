@@ -124,3 +124,15 @@ def settings():
         timezones=pytz.all_timezones,
         version=version,
     )
+
+
+@routes_blueprint.route("/settings/categories", methods=["GET"])
+@login_required
+def settings_categories():
+    """
+    Render the settings page.
+    """
+    return render_template(
+        "settings-manage-cat.html",
+        title="Manage Categories",
+    )
