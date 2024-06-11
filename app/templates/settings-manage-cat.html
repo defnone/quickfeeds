@@ -55,14 +55,14 @@
                 }
 
                 let categoryHTML = `
-            <div x-data="{ editMode: false, newName: '${category.name}' }" class="flex w-full border-b border-gray-900">
-                <span x-show="!editMode" class="block text-base w-full mt-4 mb-1 pb-3 px-3 font-medium text-gray-200 cursor-pointer" @click="if('${category.name}' !== 'Unnamed') { editMode = true; requestAnimationFrame(() => { $refs.input.focus(); }); }">${category.name}</span>
+                <div x-data="{ editMode: false, newName: '${category.name}', timeout: null }" class="flex w-full border-b border-gray-900">
+                    <span x-show="!editMode" class="block text-base w-full mt-4 mb-1 pb-3 px-3 font-medium text-gray-200 cursor-pointer" @click="if('${category.name}' !== 'Unnamed') { editMode = true; requestAnimationFrame(() => { $refs.input.focus(); }); }">${category.name}</span>
 
-                <input x-show="editMode" x-model="newName" x-ref="input" @keydown.enter="saveCategory(${category.id}, newName)" type="text" class="text-base flex w-full mt-4 mb-1 pb-3 px-3 font-medium text-gray-200 bg-slate-800 rounded-lg border-0 focus:outline-none" @blur="editMode = false" x-init="$watch('editMode', value => { if (value) setTimeout(() => $refs.input.focus(), 50) })" />
+                    <input x-show="editMode" x-model="newName" x-ref="input" @keydown.enter="saveCategory(${category.id}, newName); editMode = false" type="text" class="text-base flex w-full mt-4 mb-1 pb-3 px-3 font-medium text-gray-200 bg-slate-800 rounded-lg border-0 focus:outline-none" @blur="timeout = setTimeout(() => editMode = false, 100)" x-init="$watch('editMode', value => { if (value) setTimeout(() => $refs.input.focus(), 50) })" />
 
-                <button x-show="editMode" @click="saveCategory(${category.id}, newName)" class="ml-2 mr-2 mt-2 mb-2 px-3 py-1 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Save</button>
-                ${deleteButtonHTML}
-            </div>`;
+                    <button x-show="editMode" @click="clearTimeout(timeout); saveCategory(${category.id}, newName); editMode = false" class="ml-2 mr-2 mt-2 mb-2 px-3 py-1 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Save</button>
+                    ${deleteButtonHTML}
+                </div>`;
                 container.innerHTML += categoryHTML;
             });
 
