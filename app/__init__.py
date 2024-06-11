@@ -9,6 +9,7 @@ from .api.v1.api_info import api_ui_info_blueprint
 from .api.v1.settings import api_settings_blueprint
 from .api.v1.summarize import api_summarize_blueprint
 from .api.v1.groq import api_groq_blueprint
+from .api.v1.settings_categories import settings_categories_blueprint
 from .routes.routes import routes_blueprint
 from .routes.add_feed import add_feed_blueprint
 from .routes.mark_as_read import mark_as_read_blueprint
@@ -86,5 +87,11 @@ def create_app(config_name=None):
     # Auth Blueprint This blueprint is responsible for handling authentication
     # operations.
     app.register_blueprint(auth_blueprint)
+
+    # Settings Categories Blueprint This blueprint is responsible for handling
+    # operations related to categories.
+    app.register_blueprint(
+        settings_categories_blueprint, url_prefix="/api/settings/categories"
+    )
 
     return app
