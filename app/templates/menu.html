@@ -5,12 +5,8 @@
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0" />
-
-        <!--<link
-            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css"
-            rel="stylesheet" />-->
         <link
-            href="{{ url_for('static', filename='css/output.css') }}"
+            href="{{ url_for('static', filename='css/output.css') }}?v={{ version }}"
             rel="stylesheet" />
 
         <link
@@ -34,13 +30,13 @@
 
         <link
             rel="manifest"
-            href="{{ url_for('static', filename='manifest.json')}}" />
-        <script src="{{url_for('static', filename='js/feed-list.js')}}"></script>
-        <script src="{{url_for('static', filename='js/main.js')}}"></script>
+            href="{{ url_for('static', filename='manifest.json')}}?v={{ version }}" />
+        <script src="{{url_for('static', filename='js/feed-list.js')}}?v={{ version }}"></script>
+        <script src="{{url_for('static', filename='js/main.js')}}?v={{ version }}"></script>
 
         <script
             defer
-            src="{{url_for('static', filename='js/alpine.js')}}"></script>
+            src="{{url_for('static', filename='js/alpine.js')}}?v={{ version }}"></script>
 
         <title>{% if title %}{{ title }}{% else %}QuickFeeds{% endif %}</title>
     </head>
