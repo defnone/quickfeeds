@@ -2,6 +2,7 @@ from flask import Flask
 from app.utils.filters import (
     add_trailing_slash,
 )
+import logging_config
 from .extensions import db, migrate, login_manager
 from .api.v1.feeditems import api_feeditems_blueprint
 from .api.v1.feeds import api_feeds_blueprint
@@ -15,7 +16,7 @@ from .routes.add_feed import add_feed_blueprint
 from .routes.mark_as_read import mark_as_read_blueprint
 from .routes.auth import auth_blueprint
 from .models import User
-import logging_config
+from .context_processors import inject_version
 
 
 def create_app(config_name=None):
@@ -93,5 +94,7 @@ def create_app(config_name=None):
     app.register_blueprint(
         settings_categories_blueprint, url_prefix="/api/settings/categories"
     )
+
+    app.context_processor(inject_version)
 
     return app
