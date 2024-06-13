@@ -64,7 +64,7 @@ def delete_category(category_id):
     if not current_user.is_authenticated:
         return jsonify({"error": "User not authenticated"}), 401
 
-    category = Category.query.get(category_id)
+    category = db.session.get(Category, category_id)
     if not category:
         return jsonify({"error": "Category not found"}), 404
 
@@ -110,7 +110,7 @@ def rename_category(category_id):
     if not current_user.is_authenticated:
         return jsonify({"error": "User not authenticated"}), 401
 
-    category = Category.query.get(category_id)
+    category = db.session.get(Category, category_id)
     if not category:
         return jsonify({"error": "Category not found"}), 404
 
