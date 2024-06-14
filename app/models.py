@@ -105,7 +105,7 @@ db.Index("index_feed_item_read", FeedItem.read)
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     update_interval = db.Column(db.Integer, nullable=False, default=60)
-    clean_interval = db.Column(db.Integer, nullable=False, default=60)
+    clean_after_days = db.Column(db.Integer, nullable=False, default=60)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     timezone = db.Column(db.String(50), nullable=False, default="UTC")
     language = db.Column(db.String(50), nullable=False, default="English")
