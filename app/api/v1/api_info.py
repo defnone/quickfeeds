@@ -57,7 +57,11 @@ def get_last_sync():
                 user_tz = pytz.timezone(settings.timezone)
                 user_last_sync = user_tz.localize(user.last_sync)
             else:
-                user_last_sync = user.last_sync
+                # Ensure user_last_sync is aware
+                if user.last_sync.tzinfo is None:
+                    user_last_sync = pytz.utc.localize(user.last_sync)
+                else:
+                    user_last_sync = user.last_sync
 
             last_sync_time = humanize.naturaltime(
                 datetime.now(pytz.utc) - user_last_sync
