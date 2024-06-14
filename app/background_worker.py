@@ -4,7 +4,7 @@ import threading
 import os
 import sys
 from datetime import datetime, timedelta
-from pytz import timezone as pytz_timezone
+from pytz import timezone as pytz_timezone, utc
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
@@ -79,9 +79,16 @@ def schedule_jobs(scheduler, app):
 
                 last_sync = user.last_sync
                 if last_sync is None:
-                    last_sync = datetime.min.replace(tzinfo=user_timezone)
-                elif last_sync.tzinfo is None:
-                    last_sync = last_sync.astimezone(user_timezone)
+                    last_sync = datetime.min.replace(tzinfo=utc).astimezone(
+                        user_timezone
+                    )
+                else:
+                    if last_sync.tzinfo is None:
+                        last_sync = utc.localize(last_sync).astimezone(
+                            user_timezone
+                        )
+                    else:
+                        last_sync = last_sync.astimezone(user_timezone)
 
                 update_interval_minutes = user.settings.update_interval
                 next_run_time = last_sync + timedelta(
@@ -148,13 +155,15 @@ def run_scheduler():
     """
     Runs the scheduler to execute scheduled jobs.
 
-    This function checks if another instance of the scheduler is already running.
-    If not, it creates a new instance of the BackgroundScheduler, schedules jobs,
-    starts the scheduler, and enters a loop to periodically check and reschedule jobs.
-    The scheduler can be shut down by pressing Ctrl+C or when a system exit occurs.
+    This function checks if another instance of the scheduler is already
+    running. If not, it creates a new instance of the BackgroundScheduler,
+    schedules jobs, starts the scheduler, and enters a loop to periodically
+    check and reschedule jobs. The scheduler can be shut down by pressing
+    Ctrl+C or when a system exit occurs.
 
     Raises:
-        KeyboardInterrupt: If the user interrupts the program by pressing Ctrl+C.
+        KeyboardInterrupt: If the user interrupts the program by pressing
+        Ctrl+C.
         SystemExit: If a system exit occurs.
 
     """
