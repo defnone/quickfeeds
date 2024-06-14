@@ -114,6 +114,16 @@ def update_feed(feed, user, user_timezone):
                         media_content_html += f'<img src="{url}">'
                         break
 
+            media_thumbnail_html = ""
+            if "media_thumbnail" in entry:
+                for media_thumbnail in entry.media_thumbnail:
+                    url = media_thumbnail.get("url")
+                    width = media_thumbnail.get("width")
+                    height = media_thumbnail.get("height")
+                    if url:
+                        media_content_html += f'<img src="{url}" width="{width}" height="{height}">'
+                        break
+
             summary = ""
             if "content" in entry and len(entry["content"][0]["value"]) > 0:
                 summary = entry["content"][0]["value"]
@@ -124,7 +134,12 @@ def update_feed(feed, user, user_timezone):
             else:
                 summary = ""
 
-            summary = media_content_html + enclosure_html + summary
+            summary = (
+                media_thumbnail_html
+                + media_content_html
+                + enclosure_html
+                + summary
+            )
             summary = clean_summary(summary)
 
             guid = entry.get("id") or entry.get("guid") or entry.link

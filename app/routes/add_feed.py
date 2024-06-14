@@ -160,6 +160,16 @@ def add_feed():
                         media_content_html += f'<img src="{url}">'
                         break
 
+            media_thumbnail_html = ""
+            if "media_thumbnail" in entry:
+                for media_thumbnail in entry.media_thumbnail:
+                    url = media_thumbnail.get("url")
+                    width = media_thumbnail.get("width")
+                    height = media_thumbnail.get("height")
+                    if url:
+                        media_content_html += f'<img src="{url}" width="{width}" height="{height}">'
+                        break
+
             # Handle the content of the feed entry
             summary = ""
             if "content" in entry and len(entry["content"][0]["value"]) > 0:
@@ -171,7 +181,12 @@ def add_feed():
             else:
                 summary = ""
 
-            summary = media_content_html + enclosure_html + summary
+            summary = (
+                media_thumbnail_html
+                + media_content_html
+                + enclosure_html
+                + summary
+            )
             summary = clean_summary(summary)
 
             # Handle the publication date of the feed entry
