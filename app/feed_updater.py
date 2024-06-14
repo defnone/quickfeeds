@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import time
 import http.client
 import feedparser
@@ -166,8 +166,7 @@ def update_feeds_thread(app=app):
                 )
                 return
 
-            user_timezone = pytz_timezone(user.settings.timezone)
-            now = datetime.now(user_timezone)
+            now = datetime.now(UTC)
 
             logging.info("Updating feeds for user %s", user.username)
             start_time = time.time()
