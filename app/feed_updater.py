@@ -1,9 +1,10 @@
-import time
-import http.client
 import logging
 from datetime import datetime, timedelta
+import time
+import http.client
 import feedparser
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from pytz import timezone as pytz_timezone
 from app.models import User, Feed, FeedItem
 from app import db, create_app
 from app.utils.cleaner import clean_summary
@@ -11,77 +12,8 @@ from app.utils.cleaner import clean_summary
 app = create_app()
 
 
-def update_feeds_thread():
-    """
-    This function continuously updates the feeds for the users.
-    It runs in a loop, checking for new feed items at regular intervals,
-    and updating the database with new items.
-    """
-    with app.app_context():
-        logging.info("Starting feed update thread")
-
-        while True:
-            try:
-                user = db.session.query(User).first()
-                if not user:
-                    logging.info(
-                        "User not found. Checking again in 60 seconds."
-                    )
-                    time.sleep(60)
-                    continue
-
-                if not hasattr(user, "id"):
-                    logging.error(
-                        "User is missing 'id' attribute. Check User model."
-                    )
-                    time.sleep(60)
-                    continue
-
-                last_sync = user.last_sync or datetime.min
-                update_interval = timedelta(
-                    minutes=user.settings.update_interval
-                )
-
-                # Check if the update interval has passed
-                if datetime.now() - last_sync >= update_interval:
-                    logging.info("Updating feeds for user %s", user.username)
-                    start_time = time.time()  # Start measuring time
-                    update_user_feeds(user)
-                    user.last_sync = datetime.now()
-                    db.session.commit()
-                    end_time = time.time()  # End measuring time
-                    elapsed_time = end_time - start_time
-                    logging.info(
-                        "Feeds updated for user %s in %.2f seconds",
-                        user.username,
-                        elapsed_time,
-                    )
-
-                next_update_time = (
-                    last_sync + update_interval
-                ) - datetime.now()
-                sleep_time = max(next_update_time.total_seconds(), 1)
-                logging.info(
-                    "Waiting %d seconds until next update", sleep_time
-                )
-                time.sleep(sleep_time)
-
-            except SQLAlchemyError as e:
-                logging.error("Database error: %s", e, exc_info=True)
-                db.session.rollback()
-                time.sleep(60)
-            except Exception as e:
-                logging.error("Unhandled exception: %s", e, exc_info=True)
-                time.sleep(60)
-
-
 def update_user_feeds(user):
-    """
-    Update feeds for a specific user.
-
-    Args:
-        user (User): The user whose feeds need to be updated.
-    """
+    user_timezone = pytz_timezone(user.settings.timezone)
     feeds = db.session.query(Feed).filter_by(user_id=user.id).all()
     if not feeds:
         logging.info("User %s has no feeds to update", user.username)
@@ -91,19 +23,11 @@ def update_user_feeds(user):
         if not hasattr(feed, "id"):
             logging.error("Feed is missing 'id' attribute. Check Feed model.")
             continue
-        update_feed(feed, user)
+        update_feed(feed, user, user_timezone)
 
 
-def update_feed(feed, user):
-    """
-    Update a specific feed for a user.
-
-    Args:
-        feed (Feed): The feed to be updated.
-        user (User): The user who owns the feed.
-    """
+def update_feed(feed, user, user_timezone):
     logging.info("Updating feed %s", feed.title)
-
     try:
         feed_data = feedparser.parse(feed.url, sanitize_html=False)
     except http.client.RemoteDisconnected:
@@ -113,6 +37,9 @@ def update_feed(feed, user):
         )
         return
     entries = feed_data.entries
+    clean_after_date = datetime.now(user_timezone) - timedelta(
+        days=user.settings.clean_after_days - 1
+    )
 
     for entry in entries:
         with db.session.no_autoflush:
@@ -120,9 +47,6 @@ def update_feed(feed, user):
                 db.session.query(FeedItem).filter_by(link=entry.link).first()
             )
             if existing_item:
-                logging.debug(
-                    "Item with link %s already exists, skipping", entry.link
-                )
                 continue
 
             creator = entry.get("author") or (
@@ -133,25 +57,33 @@ def update_feed(feed, user):
 
             try:
                 if hasattr(entry, "published_parsed"):
-                    pub_date = datetime(*entry.published_parsed[:6])
+                    pub_date = datetime(
+                        *entry.published_parsed[:6], tzinfo=user_timezone
+                    )
                 elif hasattr(entry, "updated_parsed"):
-                    pub_date = datetime(*entry.updated_parsed[:6])
+                    pub_date = datetime(
+                        *entry.updated_parsed[:6], tzinfo=user_timezone
+                    )
                 else:
-                    pub_date = datetime.now()
+                    pub_date = datetime.now(user_timezone)
                     logging.warning(
-                        "Entry is missing 'published_parsed' and \
-                            'updated_parsed' attributes. Using \
-                                current date and time."
+                        "Entry is missing 'published_parsed' and 'updated_parsed' attributes. Using current date and time."
                     )
             except Exception:
-                pub_date = datetime.now()
+                pub_date = datetime.now(user_timezone)
                 logging.warning(
-                    "Error parsing date for entry %s. \
-                        Using current date and time.",
+                    "Error parsing date for entry %s. Using current date and time.",
                     entry.link,
                 )
 
-            # Handle enclosures in the feed entry
+            if pub_date < clean_after_date:
+                logging.debug(
+                    "Skipping entry %s as it is older than %d days",
+                    entry.link,
+                    user.settings.clean_after_days,
+                )
+                continue
+
             enclosure_html = ""
             if "enclosures" in entry:
                 for enclosure in entry.enclosures:
@@ -172,7 +104,6 @@ def update_feed(feed, user):
                                 f'<video controls src="{url}"></video>'
                             )
 
-            # Handle media content in the feed entry
             media_content_html = ""
             if "media_content" in entry:
                 for media_content in entry.media_content:
@@ -183,7 +114,6 @@ def update_feed(feed, user):
                         media_content_html += f'<img src="{url}">'
                         break
 
-            # Handle the content of the feed entry
             summary = ""
             if "content" in entry and len(entry["content"][0]["value"]) > 0:
                 summary = entry["content"][0]["value"]
@@ -219,3 +149,40 @@ def update_feed(feed, user):
             except SQLAlchemyError as e:
                 db.session.rollback()
                 logging.error("Error adding feed item: %s", e)
+
+
+def update_feeds_thread(app=app):
+    with app.app_context():
+        logging.info("Starting feed update thread")
+        try:
+            user = db.session.query(User).first()
+            if not user:
+                logging.info("User not found.")
+                return
+
+            if not hasattr(user, "id"):
+                logging.error(
+                    "User is missing 'id' attribute. Check User model."
+                )
+                return
+
+            user_timezone = pytz_timezone(user.settings.timezone)
+            now = datetime.now(user_timezone)
+
+            logging.info("Updating feeds for user %s", user.username)
+            start_time = time.time()
+            update_user_feeds(user)
+            user.last_sync = now
+            db.session.commit()
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            logging.info(
+                "Feeds updated for user %s in %.2f seconds",
+                user.username,
+                elapsed_time,
+            )
+        except SQLAlchemyError as e:
+            logging.error("Database error: %s", e, exc_info=True)
+            db.session.rollback()
+        except Exception as e:
+            logging.error("Unhandled exception: %s", e, exc_info=True)
