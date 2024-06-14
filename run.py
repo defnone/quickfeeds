@@ -1,26 +1,25 @@
 from threading import Thread, Lock
-from flask import Flask
 from waitress import serve
 from app import create_app, db
 from app.models import Category, User
 from app.background_worker import run_scheduler
 
 app = create_app()
-background_worker_started = False
-background_worker_lock = Lock()
+BACKGROUND_WORKER_STARTED = False
+BACKGROUND_WORKER_LOCK = Lock()
 
 
 def start_background_worker():
     """
-    Starts the background worker in a new thread if no update thread is
+    Starts the background worker in a new thread if no background worker is
     currently running.
     """
-    global background_worker_started
-    with background_worker_lock:
-        if not background_worker_started:
+    global BACKGROUND_WORKER_STARTED
+    with BACKGROUND_WORKER_LOCK:
+        if not BACKGROUND_WORKER_STARTED:
             thread = Thread(target=run_scheduler, daemon=True)
             thread.start()
-            background_worker_started = True
+            BACKGROUND_WORKER_STARTED = True
 
 
 if __name__ == "__main__":
@@ -38,8 +37,8 @@ if __name__ == "__main__":
         # Start the background worker
         start_background_worker()
 
-    # Uncomment this line to use Waitress for serving the application
+    # Waitress is used as the production server
     serve(app, host=app.config["FLASK_HOST"], port=app.config["FLASK_PORT"])
 
-    # Comment this line if you are using Waitress
+    # Use the following line to run the app using Flask's development server
     # app.run(debug=True, port=8000, host="0.0.0.0")
