@@ -11,3 +11,4 @@ Requests==2.32.3
 waitress==3.0.0
 humanize==4.9.0
 groq==0.8.0
+apscheduler==3.10.4
