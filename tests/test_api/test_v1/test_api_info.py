@@ -3,6 +3,7 @@ from flask import url_for
 from app import db
 from app.models import Category, Feed, FeedItem, User
 from datetime import datetime
+import pytz
 
 
 def test_get_categories_and_blogs(client, auth, create_user):
@@ -58,6 +59,10 @@ def test_get_last_sync(client, auth, create_user):
     # Check the last_sync value
     with client.application.app_context():
         user = User.query.filter_by(id=create_user.id).first()
+        user.last_sync = datetime.now(
+            pytz.utc
+        )  # Ensure timezone-aware datetime
+        db.session.commit()
         print(f"last_sync: {user.last_sync}")  # Debugging output
         assert (
             user.last_sync is not None
