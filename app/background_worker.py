@@ -159,7 +159,7 @@ def run_scheduler():
 
     """
     if is_another_instance_running():
-        logging.error(
+        logging.debug(
             "Another instance of the scheduler is already running. Exiting."
         )
         sys.exit(1)
