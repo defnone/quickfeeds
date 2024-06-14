@@ -55,16 +55,17 @@ def get_last_sync():
             settings = Settings.query.filter_by(user_id=user.id).first()
             if settings and settings.timezone:
                 user_tz = pytz.timezone(settings.timezone)
-                user_last_sync = user_tz.localize(user.last_sync)
+                user_last_sync = user.last_sync.replace(
+                    tzinfo=pytz.utc
+                ).astimezone(user_tz)
             else:
-                # Ensure user_last_sync is aware
                 if user.last_sync.tzinfo is None:
                     user_last_sync = pytz.utc.localize(user.last_sync)
                 else:
                     user_last_sync = user.last_sync
 
             last_sync_time = humanize.naturaltime(
-                datetime.now(pytz.utc) - user_last_sync
+                datetime.now(pytz.utc) - user_last_sync.astimezone(pytz.utc)
             )
             return jsonify({"last_sync": last_sync_time})
         else:
