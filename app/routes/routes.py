@@ -136,3 +136,15 @@ def settings_categories():
         "settings-manage-cat.html",
         title="Manage Categories",
     )
+
+
+@routes_blueprint.route("/settings/reset_last_sync", methods=["GET"])
+@login_required
+def reset_last_sync():
+    """
+    Reset the last sync time for the user.
+    """
+    current_user.last_sync = None
+    db.session.commit()
+    flash(("Last sync time reset.", "success"))
+    return redirect(url_for("routes.settings"))
