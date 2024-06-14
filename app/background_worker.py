@@ -158,6 +158,7 @@ def run_scheduler():
         SystemExit: If a system exit occurs.
 
     """
+    remove_lockfile()
     if is_another_instance_running():
         logging.debug(
             "Another instance of the scheduler is already running. Exiting."

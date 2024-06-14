@@ -77,11 +77,11 @@ def update_feed(feed, user, user_timezone):
                 )
 
             if pub_date < clean_after_date:
-                logging.debug(
-                    "Skipping entry %s as it is older than %d days",
-                    entry.link,
-                    user.settings.clean_after_days,
-                )
+                # logging.debug(
+                #     "Skipping entry %s as it is older than %d days",
+                #     entry.link,
+                #     user.settings.clean_after_days,
+                # )
                 continue
 
             enclosure_html = ""
