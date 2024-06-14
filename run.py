@@ -1,28 +1,26 @@
-from threading import Thread
-from flask import g
+from threading import Thread, Lock
+from flask import Flask
 from waitress import serve
 from app import create_app, db
 from app.models import Category, User
 from app.background_worker import run_scheduler
 
 app = create_app()
+background_worker_started = False
+background_worker_lock = Lock()
 
 
 def start_background_worker():
     """
     Starts the background worker in a new thread if no update thread is
     currently running.
-
-    If the global variable `g.update_thread` does not exist or is not alive, a
-    new thread is created using the `run_scheduler` function as the
-    target. The new thread is started as a daemon thread.
     """
-    if (
-        not hasattr(g, "background_thread")
-        or not g.background_thread.is_alive()
-    ):
-        g.background_thread = Thread(target=run_scheduler, daemon=True)
-        g.background_thread.start()
+    global background_worker_started
+    with background_worker_lock:
+        if not background_worker_started:
+            thread = Thread(target=run_scheduler, daemon=True)
+            thread.start()
+            background_worker_started = True
 
 
 if __name__ == "__main__":
@@ -39,5 +37,9 @@ if __name__ == "__main__":
                 db.session.commit()
         # Start the background worker
         start_background_worker()
+
+    # Uncomment this line to use Waitress for serving the application
     serve(app, host=app.config["FLASK_HOST"], port=app.config["FLASK_PORT"])
+
+    # Comment this line if you are using Waitress
     # app.run(debug=True, port=8000, host="0.0.0.0")
