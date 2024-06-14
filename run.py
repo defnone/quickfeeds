@@ -1,4 +1,5 @@
 from threading import Thread, Lock
+from flask import send_from_directory
 from waitress import serve
 from app import create_app, db
 from app.models import Category, User
@@ -20,6 +21,12 @@ def start_background_worker():
             thread = Thread(target=run_scheduler, daemon=True)
             thread.start()
             BACKGROUND_WORKER_STARTED = True
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    """Returns the robots.txt file from app/static"""
+    return send_from_directory(app.static_folder, "robots.txt")
 
 
 if __name__ == "__main__":
