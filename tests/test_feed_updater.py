@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
-import pytest
 import time
+import pytest
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import declarative_base
+from pytz import timezone as pytz_timezone
 from app.models import User, Feed, FeedItem, Settings
 from app.feed_updater import (
     update_feeds_thread,
@@ -14,7 +16,7 @@ from app import db, create_app
 Base = declarative_base()
 
 
-# Fixture for creating the application context
+# Pytest fixture for creating a test app with an in-memory database
 @pytest.fixture
 def app():
     app = create_app(config_name="testing")
@@ -27,13 +29,13 @@ def app():
         db.drop_all()
 
 
-# Fixture for getting the test client
+# Pytest fixture for creating a test client for the app
 @pytest.fixture
 def client(app):
     return app.test_client()
 
 
-# Fixture for creating a test user
+# Pytest fixture for creating a test user and related settings
 @pytest.fixture
 def user(app):
     user = User(
@@ -43,7 +45,12 @@ def user(app):
     )
     db.session.add(user)
     db.session.commit()
-    settings = Settings(user_id=user.id, update_interval=10)
+    settings = Settings(
+        user_id=user.id,
+        update_interval=10,
+        clean_after_days=30,
+        timezone="UTC",
+    )
     db.session.add(settings)
     db.session.commit()
     user.settings = settings
@@ -52,7 +59,7 @@ def user(app):
     return user
 
 
-# Fixture for creating a test feed
+# Pytest fixture for creating a test feed
 @pytest.fixture
 def feed(user):
     feed = Feed(title="Test Feed", url="http://test.feed/rss", user_id=user.id)
@@ -61,7 +68,7 @@ def feed(user):
     return feed
 
 
-# Fixture for creating a second test feed
+# Pytest fixture for creating a second test feed
 @pytest.fixture
 def second_feed(user):
     feed = Feed(
@@ -74,27 +81,14 @@ def second_feed(user):
     return feed
 
 
-# Fixture for mocking the sleep function
-@pytest.fixture
-def mock_sleep(mocker):
-    mocker.patch("time.sleep", return_value=None)
-
-
-# Test case for update_feeds_thread function with no users
-def test_update_feeds_thread_no_user(app, mock_sleep):
+# Test case for updating feeds thread when no user is found
+def test_update_feeds_thread_no_user(app):
     with patch("app.feed_updater.db.session.query") as mock_query:
         mock_query.return_value.first.return_value = None
-        with patch(
-            "app.feed_updater.time.sleep", side_effect=KeyboardInterrupt
-        ) as sleep_mock:
-            try:
-                update_feeds_thread()
-            except KeyboardInterrupt:
-                pass
-            sleep_mock.assert_called_with(60)
+        update_feeds_thread()
 
 
-# Test case for update_user_feeds function with no feeds
+# Test case for updating user feeds when no feeds are found
 def test_update_user_feeds_no_feeds(app, user):
     with patch("app.feed_updater.db.session.query") as mock_query:
         mock_query.return_value.filter_by.return_value.all.return_value = []
@@ -102,14 +96,14 @@ def test_update_user_feeds_no_feeds(app, user):
         mock_query.return_value.filter_by.assert_called_with(user_id=user.id)
 
 
-# Test case for update_user_feeds function with multiple feeds
+# Test case for updating user feeds when feeds are present
 def test_update_user_feeds_with_feeds(app, user, feed, second_feed):
     with patch("app.feed_updater.update_feed") as mock_update_feed:
         update_user_feeds(user)
         assert mock_update_feed.call_count == 2
 
 
-# Test case for update_feed function with no entries
+# Test case for updating feed with no entries
 def test_update_feed_no_entries(app, feed):
     with patch(
         "app.feed_updater.feedparser.parse", return_value=MagicMock(entries=[])
@@ -121,11 +115,11 @@ def test_update_feed_no_entries(app, feed):
             "first",
             return_value=None,
         ) as mock_filter_by:
-            update_feed(feed, feed.user)
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
             mock_filter_by.assert_not_called()
 
 
-# Test case for update_feed function with entries
+# Test case for updating feed with entries
 def test_update_feed_with_entries(app, feed, mocker):
     entry = MagicMock()
     entry.link = "http://test.feed/item1"
@@ -141,7 +135,7 @@ def test_update_feed_with_entries(app, feed, mocker):
         with patch(
             "app.feed_updater.clean_summary", return_value="Cleaned Summary"
         ):
-            update_feed(feed, feed.user)
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
             feed_item = (
                 db.session.query(FeedItem).filter_by(link=entry.link).first()
             )
@@ -152,7 +146,7 @@ def test_update_feed_with_entries(app, feed, mocker):
             assert feed_item.creator == "Test Creator"
 
 
-# Test case for update_feed function with a duplicate entry
+# Test case for updating feed with duplicate entries
 def test_update_feed_with_duplicate_entry(app, feed, mocker):
     entry = MagicMock()
     entry.link = "http://test.feed/item1"
@@ -180,7 +174,7 @@ def test_update_feed_with_duplicate_entry(app, feed, mocker):
             db.session.add(existing_item)
             db.session.commit()
 
-            update_feed(feed, feed.user)
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
             feed_item = (
                 db.session.query(FeedItem).filter_by(link=entry.link).first()
             )
@@ -188,9 +182,8 @@ def test_update_feed_with_duplicate_entry(app, feed, mocker):
             assert feed_item.title == "Existing Entry"
 
 
-# Test case for update_feed function with different entry formats
+# Test case for updating feed with a different entry format
 def test_update_feed_with_different_entry_format(app, feed, mocker):
-    # First test case: using updated_parsed
     entry = MagicMock()
     entry.link = "http://test.feed/item1"
     entry.title = "Test Entry"
@@ -202,7 +195,7 @@ def test_update_feed_with_different_entry_format(app, feed, mocker):
         14,
         41,
         49,
-    )  # Explicitly defined updated_parsed data
+    )
     entry.id = "test-id"
     entry.get.side_effect = lambda x: None
 
@@ -219,7 +212,7 @@ def test_update_feed_with_different_entry_format(app, feed, mocker):
                 mock_datetime.side_effect = lambda *args, **kwargs: datetime(
                     *args, **kwargs
                 )
-                update_feed(feed, feed.user)
+                update_feed(feed, feed.user, pytz_timezone("UTC"))
                 feed_item = (
                     db.session.query(FeedItem)
                     .filter_by(link=entry.link)
@@ -232,7 +225,6 @@ def test_update_feed_with_different_entry_format(app, feed, mocker):
                 assert feed_item.creator is None
                 assert feed_item.pub_date == datetime(*entry.updated_parsed)
 
-    # Second test case: no published_parsed and updated_parsed
     entry_no_date = MagicMock()
     entry_no_date.link = "http://test.feed/item2"
     entry_no_date.title = "Test Entry No Date"
@@ -255,7 +247,7 @@ def test_update_feed_with_different_entry_format(app, feed, mocker):
                 mock_datetime.side_effect = lambda *args, **kwargs: datetime(
                     *args, **kwargs
                 )
-                update_feed(feed, feed.user)
+                update_feed(feed, feed.user, pytz_timezone("UTC"))
                 feed_item_no_date = (
                     db.session.query(FeedItem)
                     .filter_by(link=entry_no_date.link)
@@ -272,7 +264,7 @@ def test_update_feed_with_different_entry_format(app, feed, mocker):
                 )
 
 
-# Test case for update_feed function with attachments
+# Test case for updating feed with attachments
 def test_update_feed_with_attachments(app, feed, mocker):
     entry = MagicMock()
     entry.link = "http://test.feed/item1"
@@ -298,7 +290,7 @@ def test_update_feed_with_attachments(app, feed, mocker):
                 "Cleaned Summary"
             ),
         ):
-            update_feed(feed, feed.user)
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
             feed_item = (
                 db.session.query(FeedItem).filter_by(link=entry.link).first()
             )
@@ -310,14 +302,119 @@ def test_update_feed_with_attachments(app, feed, mocker):
             )
 
 
-# Test case for update_feed function with media content
-def test_update_feed_with_media_content(app, feed, mocker):
+# Test case for updating feed with image enclosure
+def test_update_feed_with_image_enclosure(app, feed, mocker):
     entry = MagicMock()
     entry.link = "http://test.feed/item1"
-    entry.title = "Test Entry"
-    entry.summary = "Test Summary"
+    entry.title = "Test Entry with Image"
+    entry.summary = "Test Summary with Image"
     entry.published_parsed = time.gmtime()
     entry.id = "test-id"
+    entry.get.side_effect = lambda x: None
+
+    entry.enclosures = [
+        {"url": "http://test.feed/image.jpg", "type": "image/jpeg"}
+    ]
+
+    parsed_feed = MagicMock(entries=[entry])
+
+    with patch("app.feed_updater.feedparser.parse", return_value=parsed_feed):
+        with patch(
+            "app.feed_updater.clean_summary",
+            return_value=(
+                '<img src="http://test.feed/image.jpg" alt="Enclosure Image">'
+                "Cleaned Summary"
+            ),
+        ):
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
+            feed_item = (
+                db.session.query(FeedItem).filter_by(link=entry.link).first()
+            )
+            assert feed_item is not None
+            assert feed_item.summary == (
+                '<img src="http://test.feed/image.jpg" alt="Enclosure Image">'
+                "Cleaned Summary"
+            )
+
+
+# Test case for updating feed with audio enclosure
+def test_update_feed_with_audio_enclosure(app, feed, mocker):
+    entry = MagicMock()
+    entry.link = "http://test.feed/item2"
+    entry.title = "Test Entry with Audio"
+    entry.summary = "Test Summary with Audio"
+    entry.published_parsed = time.gmtime()
+    entry.id = "test-id-2"
+    entry.get.side_effect = lambda x: None
+
+    entry.enclosures = [
+        {"url": "http://test.feed/audio.mp3", "type": "audio/mpeg"}
+    ]
+
+    parsed_feed = MagicMock(entries=[entry])
+
+    with patch("app.feed_updater.feedparser.parse", return_value=parsed_feed):
+        with patch(
+            "app.feed_updater.clean_summary",
+            return_value=(
+                '<audio controls src="http://test.feed/audio.mp3"></audio>'
+                "Cleaned Summary"
+            ),
+        ):
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
+            feed_item = (
+                db.session.query(FeedItem).filter_by(link=entry.link).first()
+            )
+            assert feed_item is not None
+            assert feed_item.summary == (
+                '<audio controls src="http://test.feed/audio.mp3"></audio>'
+                "Cleaned Summary"
+            )
+
+
+# Test case for updating feed with video enclosure
+def test_update_feed_with_video_enclosure(app, feed, mocker):
+    entry = MagicMock()
+    entry.link = "http://test.feed/item3"
+    entry.title = "Test Entry with Video"
+    entry.summary = "Test Summary with Video"
+    entry.published_parsed = time.gmtime()
+    entry.id = "test-id-3"
+    entry.get.side_effect = lambda x: None
+
+    entry.enclosures = [
+        {"url": "http://test.feed/video.mp4", "type": "video/mp4"}
+    ]
+
+    parsed_feed = MagicMock(entries=[entry])
+
+    with patch("app.feed_updater.feedparser.parse", return_value=parsed_feed):
+        with patch(
+            "app.feed_updater.clean_summary",
+            return_value=(
+                '<video controls src="http://test.feed/video.mp4"></video>'
+                "Cleaned Summary"
+            ),
+        ):
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
+            feed_item = (
+                db.session.query(FeedItem).filter_by(link=entry.link).first()
+            )
+            assert feed_item is not None
+            assert feed_item.summary == (
+                '<video controls src="http://test.feed/video.mp4"></video>'
+                "Cleaned Summary"
+            )
+
+
+# Test case for updating feed with media content
+def test_update_feed_with_media_content(app, feed, mocker):
+    entry = MagicMock()
+    entry.link = "http://test.feed/item4"
+    entry.title = "Test Entry with Media Content"
+    entry.summary = "Test Summary with Media Content"
+    entry.published_parsed = time.gmtime()
+    entry.id = "test-id-4"
     entry.get.side_effect = lambda x: None
 
     entry.media_content = [
@@ -333,11 +430,57 @@ def test_update_feed_with_media_content(app, feed, mocker):
                 '<img src="http://test.feed/media.jpg">' "Cleaned Summary"
             ),
         ):
-            update_feed(feed, feed.user)
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
             feed_item = (
                 db.session.query(FeedItem).filter_by(link=entry.link).first()
             )
             assert feed_item is not None
             assert feed_item.summary == (
                 '<img src="http://test.feed/media.jpg">' "Cleaned Summary"
+            )
+
+
+# Test case for updating feed with a fallback summary
+def test_update_feed_with_fallback_summary(app, feed, mocker):
+    entry = MagicMock()
+    entry.link = "http://test.feed/item5"
+    entry.title = "Test Entry with Fallback Summary"
+    entry.description = "Test Description"
+    entry.published_parsed = time.gmtime()
+    entry.id = "test-id-5"
+    entry.get.side_effect = lambda x: None
+
+    parsed_feed = MagicMock(entries=[entry])
+
+    with patch("app.feed_updater.feedparser.parse", return_value=parsed_feed):
+        with patch(
+            "app.feed_updater.clean_summary", return_value="Cleaned Summary"
+        ):
+            update_feed(feed, feed.user, pytz_timezone("UTC"))
+            feed_item = (
+                db.session.query(FeedItem).filter_by(link=entry.link).first()
+            )
+            assert feed_item is not None
+            assert feed_item.summary == "Cleaned Summary"
+
+
+# Test case for logging user not found in update feeds thread
+def test_update_feeds_thread_user_not_found(app):
+    with patch("app.feed_updater.db.session.query") as mock_query:
+        mock_query.return_value.first.return_value = None
+        with patch("app.feed_updater.logging.info") as mock_logging_info:
+            update_feeds_thread()
+            mock_logging_info.assert_any_call("User not found.")
+
+
+# Test case for logging error when user is missing ID attribute
+def test_update_feeds_thread_user_missing_id(app, user):
+    with patch("app.feed_updater.db.session.query") as mock_query:
+        user_without_id = MagicMock()
+        del user_without_id.id
+        mock_query.return_value.first.return_value = user_without_id
+        with patch("app.feed_updater.logging.error") as mock_logging_error:
+            update_feeds_thread()
+            mock_logging_error.assert_any_call(
+                "User is missing 'id' attribute. Check User model."
             )
