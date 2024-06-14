@@ -2,7 +2,8 @@ from datetime import datetime
 from flask import Blueprint, jsonify
 from flask_login import current_user
 import humanize
-from app.models import Category, Feed, FeedItem, User
+import pytz
+from app.models import Category, Feed, FeedItem, User, Settings
 
 api_ui_info_blueprint = Blueprint("api", __name__)
 
@@ -51,8 +52,15 @@ def get_last_sync():
     if current_user.is_authenticated:
         user = User.query.filter_by(id=current_user.id).first()
         if user and user.last_sync is not None:
+            settings = Settings.query.filter_by(user_id=user.id).first()
+            if settings and settings.timezone:
+                user_tz = pytz.timezone(settings.timezone)
+                user_last_sync = user_tz.localize(user.last_sync)
+            else:
+                user_last_sync = user.last_sync
+
             last_sync_time = humanize.naturaltime(
-                datetime.now() - user.last_sync
+                datetime.now(pytz.utc) - user_last_sync
             )
             return jsonify({"last_sync": last_sync_time})
         else:
