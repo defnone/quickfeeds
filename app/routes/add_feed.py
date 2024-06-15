@@ -75,15 +75,6 @@ def add_feed():
 
         feed_url = feeds[0]
 
-        # if feed_url and not is_feed(feed_url):
-        #     logging.error("Invalid RSS feed: %s", feed_url)
-        #     return jsonify(
-        #         {
-        #             "success": False,
-        #             "error": "Invalid RSS feed",
-        #         }
-        #     )
-
         # Check if the feed already exists in the database
         existing_feed = Feed.query.filter_by(url=feed_url).first()
         if existing_feed:
