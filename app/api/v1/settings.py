@@ -36,6 +36,7 @@ def user_settings():
             )
         else:
             current_user_settings.groq_api_key = None
+
         # Return the user's settings in a JSON format
         return (
             jsonify(
@@ -45,6 +46,7 @@ def user_settings():
                 unread=current_user_settings.unread,
                 groq_api_key=current_user_settings.groq_api_key,
                 translate=current_user_settings.translate,
+                clean_after_days=current_user_settings.clean_after_days,
             ),
             200,
         )
@@ -66,14 +68,24 @@ def user_settings():
                 400,
             )
 
+        # Validate integer fields and set default value for clean_after_days
+        if "clean_after_days" in update_data:
+            if (
+                not isinstance(update_data["clean_after_days"], int)
+                or update_data["clean_after_days"] < 1
+            ):
+                return (
+                    jsonify({"error": "Not a valid value.'"}),
+                    400,
+                )
+
+        # If the user has settings, update them
         if current_user_settings:
-            # If the user has settings, update them
             for key, value in update_data.items():
                 if hasattr(current_user_settings, key):
                     setattr(current_user_settings, key, value)
         else:
-            # If the user doesn't have settings, create them with default
-            # values
+            # If the user doesn't have settings, create them with default values
             default_values = {
                 "update_interval": 60,
                 "timezone": "UTC",
@@ -81,11 +93,13 @@ def user_settings():
                 "unread": True,
                 "groq_api_key": None,
                 "translate": False,
+                "clean_after_days": current_user_settings.clean_after_days,
             }
             default_values.update(update_data)
             current_user_settings = Settings(
                 user_id=current_user.id, **default_values
             )
+
         # Add the updated settings to the session and commit the changes
         db.session.add(current_user_settings)
         db.session.commit()
@@ -99,6 +113,7 @@ def user_settings():
                 unread=current_user_settings.unread,
                 groq_api_key=current_user_settings.groq_api_key,
                 translate=current_user_settings.translate,
+                clean_after_days=current_user_settings.clean_after_days,
             ),
             200,
         )
