@@ -70,9 +70,10 @@ def user_settings():
 
         # Validate integer fields and set default value for clean_after_days
         if "clean_after_days" in update_data:
+            clean_after_days = int(update_data["clean_after_days"])
             if (
-                not isinstance(update_data["clean_after_days"], int)
-                or update_data["clean_after_days"] < 1
+                not isinstance(clean_after_days, int)
+                or clean_after_days < 1
             ):
                 return (
                     jsonify({"error": "Not a valid value.'"}),
