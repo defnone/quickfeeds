@@ -23,6 +23,20 @@
                 class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" />
         </div>
 
+        <!-- Clean -->
+
+        <div x-data="{ input: '' }" class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+            <label for="clean-after" class="w-full md:w-1/2 text-left text-gray-300">Clean after (days)</label>
+            <input
+                type="text"
+                x-model="input"
+                x-on:input="input = input.replace(/[^0-9]/g, '')"
+                id="clean-after"
+                name="clean-after"
+                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" />
+        </div>
+
+
         <!-- Timezone -->
         <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
             <label for="timezone" class="w-full md:w-1/2 text-left text-gray-300">Timezone</label>
@@ -128,6 +142,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const updateIntervalInput = document.getElementById('update-interval');
+        const cleanAfterInput = document.getElementById('clean-after');
         const timezoneSelect = document.getElementById('timezone');
         const languageSelect = document.getElementById('language');
         const groqApiKeyInput = document.getElementById('groq-api-key');
@@ -149,6 +164,7 @@
                 .then((response) => response.json())
                 .then((data) => {
                     updateIntervalInput.value = data.update_interval;
+                    cleanAfterInput.value  = data.clean_after_days;
                     timezoneSelect.value = data.timezone;
                     languageSelect.value = data.language;
                     groqApiKeyInput.value = data.groq_api_key;
@@ -164,6 +180,7 @@
         function saveUserSettings() {
             return new Promise((resolve, reject) => {
                 const updateInterval = updateIntervalInput.value;
+                const cleanAfterDays  = cleanAfterInput.value;
                 const timezone = timezoneSelect.value;
                 const language = languageSelect.value;
                 const translate = translateToggle.checked;
@@ -171,6 +188,7 @@
 
                 let settings = {
                     update_interval: updateInterval,
+                    clean_after_days: cleanAfterDays,
                     timezone: timezone,
                     language: language,
                     translate: translate,
