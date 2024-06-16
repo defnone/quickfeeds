@@ -188,8 +188,6 @@ def run_scheduler():
                 settings = db.session.query(Settings).first()
                 update_interval = settings.update_interval
             global save_update_interval
-            logging.debug("Update interval: %s", update_interval)
-            logging.debug("Last sync: %s", last_sync)
             if update_interval != save_update_interval or last_sync is None:
                 save_update_interval = (
                     update_interval if last_sync is not None else 0
