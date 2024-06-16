@@ -36,8 +36,8 @@ def fetch_article(url):
         response = requests.get(url, timeout=10)
         response.raise_for_status()
 
-        # Limit the size of the response to 1 MB
-        if len(response.content) > 1024 * 1024:
+        # Limit the size of the response to 5 MB
+        if len(response.content) > 1024 * 1024 * 5:
             logging.error("Response content is too large: %s", url)
             raise ValueError("Response content is too large.")
 
