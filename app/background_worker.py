@@ -4,6 +4,7 @@ import threading
 import os
 import sys
 from datetime import datetime, timedelta
+from flask import session
 from pytz import timezone as pytz_timezone, utc
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.date import DateTrigger
@@ -12,10 +13,12 @@ from app import create_app, db
 from app.models import User
 from .feed_updater import update_feeds_thread
 from .feed_cleaner import clean_feeds
+from app.models import User, Settings
 
 app = create_app()
 lock = threading.Lock()
 LOCKFILE = "/tmp/scheduler.lock"
+save_update_interval = None
 
 
 def is_another_instance_running():
@@ -153,18 +156,17 @@ def schedule_jobs(scheduler, app):
 
 def run_scheduler():
     """
-    Runs the scheduler to execute scheduled jobs.
+    Run the scheduler to update and clean feeds.
 
-    This function checks if another instance of the scheduler is already
-    running. If not, it creates a new instance of the BackgroundScheduler,
-    schedules jobs, starts the scheduler, and enters a loop to periodically
-    check and reschedule jobs. The scheduler can be shut down by pressing
-    Ctrl+C or when a system exit occurs.
-
-    Raises:
-        KeyboardInterrupt: If the user interrupts the program by pressing
-        Ctrl+C.
-        SystemExit: If a system exit occurs.
+    This function is responsible for initiating and running the main scheduling
+    process for updating and cleaning feeds in a Flask application. It first
+    checks if there is an existing lockfile, and if not, it creates one with
+    the current process ID (PID). Then, it retrieves user information from the
+    database, calculates the next update time based on the user's settings,
+    schedules the `update_feeds_thread` job to run immediately, and then at a
+    specified interval. Additionally, it schedules the `clean_feeds` job to run
+    immediately and then every three hours. Finally, it logs relevant
+    information about the scheduling process.
 
     """
     remove_lockfile()
@@ -181,8 +183,20 @@ def run_scheduler():
 
     try:
         while True:
+            with app.app_context():
+                last_sync = db.session.query(User).first().last_sync
+                settings = db.session.query(Settings).first()
+                update_interval = settings.update_interval
+            global save_update_interval
+            logging.debug("Update interval: %s", update_interval)
+            logging.debug("Last sync: %s", last_sync)
+            if update_interval != save_update_interval or last_sync is None:
+                save_update_interval = (
+                    update_interval if last_sync is not None else 0
+                )
+                schedule_jobs(scheduler, app)
             time.sleep(30)
-            schedule_jobs(scheduler, app)
+
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()
         logging.info("Scheduler shut down")
