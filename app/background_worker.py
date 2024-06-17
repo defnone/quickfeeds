@@ -4,21 +4,20 @@ import threading
 import os
 import sys
 from datetime import datetime, timedelta
-from flask import session
 from pytz import timezone as pytz_timezone, utc
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from app import create_app, db
-from app.models import User
+from app.models import User, Settings
 from .feed_updater import update_feeds_thread
 from .feed_cleaner import clean_feeds
-from app.models import User, Settings
 
 app = create_app()
 lock = threading.Lock()
 LOCKFILE = "/tmp/scheduler.lock"
 save_update_interval = None
+running = True
 
 
 def is_another_instance_running():
@@ -53,8 +52,9 @@ def remove_lockfile():
     """
     Removes the lockfile if it exists.
 
-    This function attempts to remove the lockfile specified by the `LOCKFILE` constant.
-    If the lockfile exists, it is deleted and a debug message is logged.
+    This function attempts to remove the lockfile specified by the `LOCKFILE`
+    constant. If the lockfile exists, it is deleted and a debug message is
+    logged.
 
     """
     logging.debug("Attempting to remove lockfile")
@@ -65,42 +65,43 @@ def remove_lockfile():
 
 def schedule_jobs(scheduler, app):
     """
-    Schedule jobs for updating and cleaning feeds.
-
+    Schedules jobs for the background worker based on user settings.
     Args:
-        scheduler (BackgroundScheduler): The scheduler object used to schedule jobs.
+        scheduler (apscheduler.Scheduler): The scheduler to add jobs to.
         app (Flask): The Flask application object.
-
     Returns:
         None
     """
+    # Acquire lock to prevent concurrent updates to database
     with lock:
+        # Set the app context for the current thread
         with app.app_context():
+            # Query the first user in the database
             user = db.session.query(User).first()
-            if user:
+
+            if user:  # If there is a user present
+                # Get the timezone from the user settings and convert it to pytz format
                 user_timezone = pytz_timezone(user.settings.timezone)
 
+                # Convert user's last sync time to the user's timezone
                 last_sync = user.last_sync
                 if last_sync is None:
-                    last_sync = datetime.min.replace(tzinfo=utc).astimezone(
-                        user_timezone
-                    )
+                    last_sync = datetime.min.replace(tzinfo=utc).astimezone(user_timezone)
                 else:
                     if last_sync.tzinfo is None:
-                        last_sync = utc.localize(last_sync).astimezone(
-                            user_timezone
-                        )
+                        last_sync = utc.localize(last_sync).astimezone(user_timezone)
                     else:
                         last_sync = last_sync.astimezone(user_timezone)
 
+                # Get the update interval from the user settings in minutes
                 update_interval_minutes = user.settings.update_interval
-                next_run_time = last_sync + timedelta(
-                    minutes=update_interval_minutes
-                )
+
+                # Calculate when the next run time should be based on the update interval and last sync time
+                next_run_time = last_sync + timedelta(minutes=update_interval_minutes)
                 now = datetime.now(user_timezone)
 
-                if next_run_time <= now:
-                    next_run_time = now
+                if next_run_time <= now:  # If the next run time is before or equal to the current time
+                    next_run_time = now  # Set the next run time to now to ensure immediate execution
                     scheduler.add_job(
                         update_feeds_thread,
                         DateTrigger(run_date=next_run_time),
@@ -112,24 +113,19 @@ def schedule_jobs(scheduler, app):
                         "Update feeds job scheduled to run immediately"
                     )
 
-                next_run_time = now + timedelta(
-                    minutes=update_interval_minutes
-                )
                 scheduler.add_job(
                     update_feeds_thread,
-                    DateTrigger(run_date=next_run_time),
+                    IntervalTrigger(minutes=update_interval_minutes, timezone=user_timezone),
                     id="update_feeds_job",
                     replace_existing=True,
                     args=[app],
                 )
-                logging.debug(
-                    "Scheduled next run for update_feeds_job at %s",
-                    next_run_time,
-                )
                 logging.info(
-                    "Update feeds job scheduled to run at %s", next_run_time
+                    "Update feeds job scheduled to run every %d minutes",
+                    update_interval_minutes,
                 )
 
+                # Schedule the clean feeds job to run immediately and then every 3 hours
                 job_id = "clean_feeds"
                 if not scheduler.get_job(job_id):
                     scheduler.add_job(
@@ -145,9 +141,6 @@ def schedule_jobs(scheduler, app):
                         id=job_id,
                         replace_existing=True,
                         args=[app],
-                    )
-                    logging.debug(
-                        "Scheduled next run for clean_feeds_job immediately and then every 3 hours"
                     )
                     logging.info(
                         "Clean feeds job scheduled to run immediately and then every 3 hours"
@@ -169,6 +162,7 @@ def run_scheduler():
     information about the scheduling process.
 
     """
+    global running
     remove_lockfile()
     if is_another_instance_running():
         logging.debug(
@@ -182,26 +176,31 @@ def run_scheduler():
     logging.info("Scheduler started")
 
     try:
-        while True:
+        while running:
             with app.app_context():
                 last_sync = db.session.query(User).first().last_sync
                 settings = db.session.query(Settings).first()
                 update_interval = settings.update_interval
+
             global save_update_interval
             if update_interval != save_update_interval or last_sync is None:
                 save_update_interval = (
                     update_interval if last_sync is not None else 0
                 )
                 schedule_jobs(scheduler, app)
+
             time.sleep(30)
 
     except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
         logging.info("Scheduler shut down")
+        scheduler.shutdown()
         remove_lockfile()
     except Exception as e:
         logging.error("An unexpected error occurred: %s", e)
         remove_lockfile()
+    finally:
+        logging.info("Exiting scheduler loop")
+        running = False
 
 
 if __name__ == "__main__":
