@@ -63,7 +63,7 @@ def remove_lockfile():
         logging.debug("Lockfile removed")
 
 
-def schedule_jobs(scheduler, app):
+def schedule_jobs(scheduler, app, first_run=False):
     """
     Schedules jobs for the background worker based on user settings.
     Args:
@@ -86,10 +86,14 @@ def schedule_jobs(scheduler, app):
                 # Convert user's last sync time to the user's timezone
                 last_sync = user.last_sync
                 if last_sync is None:
-                    last_sync = datetime.min.replace(tzinfo=utc).astimezone(user_timezone)
+                    last_sync = datetime.min.replace(tzinfo=utc).astimezone(
+                        user_timezone
+                    )
                 else:
                     if last_sync.tzinfo is None:
-                        last_sync = utc.localize(last_sync).astimezone(user_timezone)
+                        last_sync = utc.localize(last_sync).astimezone(
+                            user_timezone
+                        )
                     else:
                         last_sync = last_sync.astimezone(user_timezone)
 
@@ -97,11 +101,16 @@ def schedule_jobs(scheduler, app):
                 update_interval_minutes = user.settings.update_interval
 
                 # Calculate when the next run time should be based on the update interval and last sync time
-                next_run_time = last_sync + timedelta(minutes=update_interval_minutes)
+                next_run_time = last_sync + timedelta(
+                    minutes=update_interval_minutes
+                )
                 now = datetime.now(user_timezone)
 
-                if next_run_time <= now:  # If the next run time is before or equal to the current time
+                if (
+                    next_run_time <= now or first_run
+                ):  # If the next run time is before or equal to the current time
                     next_run_time = now  # Set the next run time to now to ensure immediate execution
+                    first_run = False
                     scheduler.add_job(
                         update_feeds_thread,
                         DateTrigger(run_date=next_run_time),
@@ -115,7 +124,9 @@ def schedule_jobs(scheduler, app):
 
                 scheduler.add_job(
                     update_feeds_thread,
-                    IntervalTrigger(minutes=update_interval_minutes, timezone=user_timezone),
+                    IntervalTrigger(
+                        minutes=update_interval_minutes, timezone=user_timezone
+                    ),
                     id="update_feeds_job",
                     replace_existing=True,
                     args=[app],
@@ -171,7 +182,7 @@ def run_scheduler():
         sys.exit(1)
 
     scheduler = BackgroundScheduler()
-    schedule_jobs(scheduler, app)
+    schedule_jobs(scheduler, app, first_run=True)
     scheduler.start()
     logging.info("Scheduler started")
 
