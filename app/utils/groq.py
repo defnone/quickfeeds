@@ -4,7 +4,7 @@ import logging
 
 def groq_request(article_tuple, api_key, promt="Summarize the text"):
     title, text = article_tuple
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=api_key, timeout=10.0)
     completion = client.chat.completions.create(
         model="llama3-70b-8192",
         messages=[
