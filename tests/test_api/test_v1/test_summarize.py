@@ -95,7 +95,7 @@ def test_api_summarize_authenticated(
     mock_groq_request.return_value = "Summarized text"
     response = client.post(
         "/api/summarize",
-        json={"url": "http://example.com"},
+        json={"url": "https://github.com"},
         content_type="application/json",
     )
     assert response.status_code == 200
