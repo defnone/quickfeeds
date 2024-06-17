@@ -54,11 +54,12 @@ def is_url_safe(url):
     """
     Checks if a given URL is safe to use.
 
-    A URL is considered safe if:
-    - It has a scheme of either "http" or "https".
+    A URL is considered safe if: - It has a scheme of either "http" or "https".
     - The hostname is not private (e.g. 10.0.0.0/8, 172.16.0.0/12,
-    192.168.0.0/16) and not localhost.
-    - The hostname can be resolved to an IP address.
+    192.168.0.0/16) and not localhost. - The hostname can be resolved to an IP
+    address. - The URL does not exceed a certain length (e.g. 2048 characters).
+    - It does not contain any potentially harmful characters such as '..',
+    '\\', etc.
 
     Args:
         url (str): The URL to check.
@@ -68,6 +69,10 @@ def is_url_safe(url):
     """
     try:
         parsed_url = urlparse(url)
+
+        if len(url) > 2048:
+            logging.error("URL exceeds maximum length")
+            return False
 
         if parsed_url.scheme not in ("http", "https"):
             logging.error("Invalid scheme: %s", parsed_url.scheme)
@@ -98,9 +103,17 @@ def is_url_safe(url):
             )
             return False
 
+        # Check for harmful characters in the URL
+        for harmful_char in "..", "\\":
+            if harmful_char in url:
+                logging.error(
+                    "Harmful character detected in URL: %s", harmful_char
+                )
+                return False
+
         return True
     except ValueError:
-        logging.error("ValueError occurred")
+        logging.error("ValueError occurred, URL is not safe")
         return False
 
 
