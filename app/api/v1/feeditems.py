@@ -42,10 +42,14 @@ def get_items(query, limit, last_item_id):
                 )
             )
         except SQLAlchemyError as e:
-            logging.error(f"Error fetching last item: {e}")
+            logging.error("Error fetching last item: %s", str(e))
             return []
     try:
-        items = query.limit(limit).all()
+        items = (
+            query.order_by(FeedItem.pub_date.desc(), FeedItem.id.desc())
+            .limit(limit)
+            .all()
+        )
     except SQLAlchemyError as e:
         logging.error("Error fetching items: %s", e)
         return []
@@ -91,10 +95,8 @@ def get_feed_items():
     last_item_id = request.args.get("last_item_id")
     user_timezone = get_user_timezone()
 
-    query = (
-        FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id)
-        .filter(Feed.user_id == current_user.id, FeedItem.read.is_(False))
-        .order_by(FeedItem.pub_date.desc())
+    query = FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id).filter(
+        Feed.user_id == current_user.id, FeedItem.read.is_(False)
     )
 
     items = get_items(query, limit, last_item_id)
@@ -124,7 +126,7 @@ def get_all_feed_items():
     last_item_id = request.args.get("last_item_id")
     user_timezone = get_user_timezone()
 
-    query = FeedItem.query.order_by(FeedItem.pub_date.desc())
+    query = FeedItem.query
 
     items = get_items(query, limit, last_item_id)
     return create_response(items, user_timezone)
@@ -157,14 +159,10 @@ def get_category_feed_items(cat_id):
     last_item_id = request.args.get("last_item_id")
     user_timezone = get_user_timezone()
 
-    query = (
-        FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id)
-        .filter(
-            Feed.category_id == cat_id,
-            Feed.user_id == current_user.id,
-            FeedItem.read.is_(False),
-        )
-        .order_by(FeedItem.pub_date.desc())
+    query = FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id).filter(
+        Feed.category_id == cat_id,
+        Feed.user_id == current_user.id,
+        FeedItem.read.is_(False),
     )
 
     items = get_items(query, limit, last_item_id)
@@ -196,10 +194,8 @@ def get_all_category_feed_items(cat_id):
     last_item_id = request.args.get("last_item_id")
     user_timezone = get_user_timezone()
 
-    query = (
-        FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id)
-        .filter(Feed.category_id == cat_id)
-        .order_by(FeedItem.pub_date.desc())
+    query = FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id).filter(
+        Feed.category_id == cat_id
     )
 
     items = get_items(query, limit, last_item_id)
@@ -231,15 +227,11 @@ def get_specific_feed_items(cat_id, feed_id):
     last_item_id = request.args.get("last_item_id")
     user_timezone = get_user_timezone()
 
-    query = (
-        FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id)
-        .filter(
-            Feed.category_id == cat_id,
-            Feed.id == feed_id,
-            Feed.user_id == current_user.id,
-            FeedItem.read.is_(False),
-        )
-        .order_by(FeedItem.pub_date.desc())
+    query = FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id).filter(
+        Feed.category_id == cat_id,
+        Feed.id == feed_id,
+        Feed.user_id == current_user.id,
+        FeedItem.read.is_(False),
     )
 
     items = get_items(query, limit, last_item_id)
@@ -276,10 +268,8 @@ def get_all_specific_feed_items(cat_id, feed_id):
     last_item_id = request.args.get("last_item_id")
     user_timezone = get_user_timezone()
 
-    query = (
-        FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id)
-        .filter(Feed.category_id == cat_id, Feed.id == feed_id)
-        .order_by(FeedItem.pub_date.desc())
+    query = FeedItem.query.join(Feed, Feed.id == FeedItem.feed_id).filter(
+        Feed.category_id == cat_id, Feed.id == feed_id
     )
 
     items = get_items(query, limit, last_item_id)
