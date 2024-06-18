@@ -108,16 +108,16 @@ def schedule_jobs(scheduler, app, first_run=False):
 
                 if (
                     next_run_time <= now or first_run
-                ):  # If the next run time is before or equal to the current time
+                ):  #  If it's time for an update or this is the first run
                     next_run_time = now  # Set the next run time to now to ensure immediate execution
-                    first_run = False
+                    first_run = False  # Set the first run flag to False
                     scheduler.add_job(
                         update_feeds_thread,
                         DateTrigger(run_date=next_run_time),
                         id="update_feeds_job_immediate",
                         replace_existing=True,
                         args=[app],
-                    )
+                    )  # Schedule the update feeds job to run immediately if it's time for an update or this is the first run
                     logging.info(
                         "Update feeds job scheduled to run immediately"
                     )
