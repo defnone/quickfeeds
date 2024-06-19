@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Scroll to the item position with an offset
                 const itemPosition =
-                    itemTitle.getBoundingClientRect().top + window.pageYOffset;
+                    itemTitle.getBoundingClientRect().top + window.scrollY;
                 const offsetPercentage = 20;
                 const offsetPixels =
                     window.innerHeight * (offsetPercentage / 100);
@@ -26,72 +26,85 @@ document.addEventListener('DOMContentLoaded', function () {
                     behavior: 'smooth',
                 });
 
-                const feedContent = feedItem.querySelector('.feed-content');
-                const originalContent = feedContent.innerHTML;
-                const isCollapsed = feedContent.style.overflow === 'hidden';
+                // Calculate the scroll duration (assuming a fixed scroll speed)
+                const scrollDuration = 500; // duration in milliseconds
 
-                // Toggle content visibility
-                if (isCollapsed) {
-                    feedContent.style.maxHeight = 'none';
-                    feedContent.style.overflow = 'visible';
-                    const gradient =
-                        feedContent.querySelector('.bg-gradient-to-t');
-                    const button = feedContent.querySelector('button');
-                    gradient.classList.add('hidden');
-                    button.classList.add('hidden');
-                }
+                setTimeout(() => {
+                    const feedContent = feedItem.querySelector('.feed-content');
+                    const originalContent = feedContent.innerHTML;
+                    const isCollapsed = feedContent.style.overflow === 'hidden';
 
-                // Show loading spinner while fetching the summary
-                feedContent.innerHTML = `<div class="flex justify-center items-center w-full min-h-96">
-                <svg width="54" height="54" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <filter id="spinner-gF01">
-                            <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="y"/>
-                            <feColorMatrix in="y" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 18 -7" result="z"/>
-                            <feBlend in="SourceGraphic" in2="z"/>
-                        </filter>
-                    </defs>
-                    <g class="spinner_LvYV" filter="url(#spinner-gF01)">
-                        <circle class="spinner_8XMC" cx="5" cy="12" r="4"/>
-                        <circle class="spinner_WWWR" cx="19" cy="12" r="4"/>
-                    </g>
-                </svg>
-            </div>`;
+                    // Toggle content visibility
+                    if (isCollapsed) {
+                        feedContent.style.maxHeight = 'none';
+                        feedContent.style.overflow = 'visible';
+                        const gradient =
+                            feedContent.querySelector('.bg-gradient-to-t');
+                        const button = feedContent.querySelector('button');
+                        gradient.classList.add('hidden');
+                        button.classList.add('hidden');
+                    }
 
-                const postUrl = feedItem.querySelector('.item-title a').href;
+                    // Show loading placeholder while fetching the summary
+                    feedContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        
+                    </div>`;
 
-                // Fetch the summary from the API
-                fetch('/api/summarize', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ url: postUrl }),
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.status === 'error') {
-                            showMessage(
-                                'Error summarizing the text. Check Groq API in <a class="underline" href="/settings">Settings</a>.',
-                                'error'
-                            );
-                            feedContent.innerHTML = originalContent;
-                        } else {
-                            feedContent.innerHTML = `
-                            <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)" x-show="show"
-                            x-transition:enter="transition ease-out duration-1000"
-                            x-transition:enter-start="transform opacity-0 scale-90"
-                            x-transition:enter-end="transform opacity-100 scale-100">
+                    const postUrl =
+                        feedItem.querySelector('.item-title a').href;
+
+                    // Fetch the summary from the API
+                    fetch('/api/summarize', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ url: postUrl }),
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.status === 'error') {
+                                showMessage(
+                                    'Error summarizing the text. Check Groq API in <a class="underline" href="/settings">Settings</a>.',
+                                    'error'
+                                );
+                                feedContent.innerHTML = originalContent;
+                            } else {
+                                feedContent.innerHTML = `
+                            <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 0)" x-show="show"
+                            x-transition:enter="transition ease-out duration-[2000ms]"
+                            x-transition:enter-start="transform max-h-0 opacity-0"
+                            x-transition:enter-end="transform max-h-full opacity-100">
                                 <p>${data.summary}</p>
                             </div>`;
-                        }
-                    })
-                    .catch((error) => {
-                        showMessage('Error summarizing the text', 'error');
-                        console.error('Error:', error);
-                        feedContent.innerHTML = originalContent;
-                    });
+                            }
+                        })
+                        .catch((error) => {
+                            showMessage('Error summarizing the text', 'error');
+                            console.error('Error:', error);
+                            feedContent.innerHTML = originalContent;
+                        });
+                }, scrollDuration); // delay in milliseconds
             }
         });
 
