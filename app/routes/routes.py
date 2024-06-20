@@ -146,5 +146,10 @@ def reset_last_sync():
     """
     current_user.last_sync = None
     db.session.commit()
-    flash(("Last sync time reset.", "success"))
+    flash(
+        (
+            "Last sync time reset. The next synchronization will be as soon as possible.",
+            "success",
+        )
+    )
     return redirect(url_for("routes.settings"))
