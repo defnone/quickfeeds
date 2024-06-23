@@ -5,6 +5,7 @@ tests
 *.pyc
 __pycache__
 .env
+.venv
 README.md
 LICENSE
 Dockerfile
