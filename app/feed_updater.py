@@ -108,9 +108,11 @@ def update_feed(feed, user, user_timezone):
             if "media_content" in entry:
                 for media_content in entry.media_content:
                     url = media_content.get("url")
+                    type_ = media_content.get("type")
                     medium = media_content.get("medium")
-
-                    if url and medium == "image":
+                    if url and (
+                        medium == "image" or type_.startswith("image/")
+                    ):
                         media_content_html += f'<img src="{url}">'
                         break
 
