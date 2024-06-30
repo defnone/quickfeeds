@@ -60,7 +60,7 @@
 
                     <input x-show="editMode" x-model="newName" x-ref="input" @keydown.enter="saveCategory(${category.id}, newName); editMode = false" type="text" class="text-base flex w-full mt-4 mb-2 pb-2 pt-2 px-3 mr-1 font-medium text-gray-200 bg-slate-900 rounded-lg border-0 focus:outline-none" @blur="timeout = setTimeout(() => editMode = false, 100)" x-init="$watch('editMode', value => { if (value) setTimeout(() => $refs.input.focus(), 50) })" />
 
-                    <button x-show="editMode" @click="clearTimeout(timeout); saveCategory(${category.id}, newName); editMode = false" class="ml-2 mr-2 mt-auto mb-3 px-3 py-1 h-9 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Save</button>
+                    <button x-show="editMode" @click="clearTimeout(timeout); saveCategory(${category.id}, newName); editMode = false" class="ml-2 mr-2 mt-4 mb-2 px-3 py-1 h-10 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Save</button>
                     ${deleteButtonHTML}
                 </div>`;
                 container.innerHTML += categoryHTML;
