@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import update, select
 from app.extensions import db
-from app.models import Feed, FeedItem
+from app.models import Feed, FeedItem, ArticleLink, SummarizedArticle
 
 mark_as_read_blueprint = Blueprint("mark_as_read", __name__)
 
@@ -117,3 +117,42 @@ def mark_as_read_all_feed(cat_id, feed_id):
     return redirect(
         url_for("routes.all_feed_items", cat_id=cat_id, feed_id=feed_id)
     )
+
+
+@mark_as_read_blueprint.route(
+    "/mark_as_read/daily/<int:item_id>", methods=["POST"]
+)
+@login_required
+def mark_as_read_daily(item_id):
+    """
+    Marks a feed item as read.
+
+    Args:
+        item_id (int): The ID of the feed item to mark as read.
+
+    Returns:
+        redirect: A redirect response to the index page.
+    """
+    summarized_article = db.session.get(SummarizedArticle, item_id)
+    if summarized_article is None:
+        return (
+            jsonify(
+                {"status": "error", "message": "Summarized article not found"}
+            ),
+            404,
+        )
+
+    # Mark SummarizedArticle as read
+    summarized_article.read = True
+    db.session.commit()
+
+    # Mark associated FeedItems as read through ArticleLink
+    article_links = ArticleLink.query.filter_by(
+        summarized_article_id=item_id
+    ).all()
+    for article_link in article_links:
+        feed_item = article_link.original_article
+        feed_item.read = True
+        db.session.commit()
+
+    return jsonify({"status": "success"})
