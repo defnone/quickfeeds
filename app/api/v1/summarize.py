@@ -41,7 +41,7 @@ def summarize():
         )
 
     url = data.get("url")
-    query = get_text_from_url(url)
+    query = get_text_from_url(url, processor="goose3")
 
     if not query:
         return (
