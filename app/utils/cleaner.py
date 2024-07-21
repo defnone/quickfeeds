@@ -1,6 +1,7 @@
-from bs4 import BeautifulSoup, Comment
 import logging
 from urllib.parse import urlparse, urlunparse
+from bs4 import BeautifulSoup, Comment
+
 
 # Global constants for allowed tags and attributes
 ALLOWED_TAGS = [
@@ -69,7 +70,21 @@ ALLOWED_ATTRIBUTES = {
 
 def remove_url_params(url):
     """
-    Removes all parameters from a URL.
+    Remove URL parameters from a given URL.
+
+    This function takes a URL as input, parses it using the urlparse function,
+    removes the query string (i.e., the URL parameters), and returns the
+    resulting URL.
+
+    Args:
+        url (str): The input URL to be cleaned.
+
+    Returns:
+        str: The cleaned URL with all parameters removed.
+
+    Example:
+        >>> remove_url_params("https://example.com/path?a=1&b=2")
+        "https://example.com/path"
     """
     parsed_url = urlparse(url)
     return urlunparse(parsed_url._replace(query=""))
@@ -77,10 +92,23 @@ def remove_url_params(url):
 
 def clean_images(soup):
     """
-    Remove duplicate images from a BeautifulSoup object.
+    Remove duplicate images from the given BeautifulSoup object.
 
-    :param soup: BeautifulSoup object
-    :return: Modified BeautifulSoup object with duplicate images removed
+    This function finds all img tags in the given soup, removes URL parameters
+    from their src attributes, and then removes duplicate images.
+
+    Args:
+        soup (BeautifulSoup): The input BeautifulSoup object to be cleaned.
+
+    Returns:
+        BeautifulSoup: The cleaned BeautifulSoup object with duplicate images
+        removed.
+
+    Notes:
+        This function uses the remove_url_params function to remove URL
+        parameters from image sources. It logs warnings for img tags that are
+        None or missing the src attribute, and errors for any exceptions that
+        occur while cleaning the URL.
     """
     images = soup.find_all("img")
     if not images:
@@ -101,7 +129,7 @@ def clean_images(soup):
 
         try:
             cleaned_src = remove_url_params(img_src)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             logging.error("Error cleaning URL: %s", str(e))
             continue
 
@@ -169,7 +197,7 @@ def clean_summary(summary):
                 calculated_height = int(original_width / aspect_ratio)
                 iframe["height"] = str(calculated_height) + "px"
             except ValueError as e:
-                logging.error(f"Error parsing iframe width: {e}")
+                logging.error("Error parsing iframe width: %s", str(e))
                 iframe["height"] = "auto"
         iframe["width"] = "100%"
 
