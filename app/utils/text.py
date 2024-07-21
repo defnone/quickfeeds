@@ -1,8 +1,3 @@
-"""
-This module provides functions for fetching and parsing articles from the web.
-It includes utilities for URL validation, HTTP requests, and HTML parsing.
-"""
-
 import re
 from urllib.parse import urlparse
 import ipaddress
@@ -10,6 +5,8 @@ import socket
 import logging
 import requests
 from bs4 import BeautifulSoup
+from goose3 import Goose
+from goose3.network import NetworkError
 
 
 def fetch_article(url):
@@ -119,13 +116,19 @@ def is_url_safe(url):
 
 def parse_article(html_content):
     """
-    Parse the HTML content of an article and extract the title and text.
+    Extracts the title and text from an HTML article content.
 
     Args:
-        html_content (str): The HTML content of the article.
+        html_content (str): The HTML content of the article to parse.
 
     Returns:
-        tuple: The title and text of the article.
+        tuple: A tuple containing the title and text of the article, truncated
+        to 5900 characters.
+
+    Notes:
+        This function uses the BeautifulSoup library to parse the HTML content.
+        The title is extracted from the first `<h1>` tag, and the text is
+        extracted from all `<p>` tags.
     """
     soup = BeautifulSoup(html_content, "html.parser")
     title = soup.find("h1").get_text()
@@ -134,19 +137,89 @@ def parse_article(html_content):
     return title, text[:5900]
 
 
-def get_text_from_url(url):
+def parse_article_as_goose3(url):
     """
-    Fetch the HTML content of an article at the given URL and parse it to
-    extract the title and text.
+    Extracts the title and cleaned text from an article
+    URL using Goose3 library.
 
     Args:
-        url (str): The URL of the article to fetch and parse.
+        url (str): The URL of the article to extract.
 
     Returns:
-        tuple: The title and text of the article.
+        tuple: A tuple containing the article title and cleaned text,
+        or (None, None) if the URL is not safe.
+
+    Notes:
+        This function uses the Goose3 library to extract the article content.
+        The `is_url_safe` function is used to check
+        if the URL is safe to extract.
     """
-    html_content = fetch_article(url)
-    return parse_article(html_content)
+    g = Goose()
+    if is_url_safe(url):
+        article = g.extract(url=url)
+    else:
+        return None, None
+    return article.title, article.cleaned_text
+
+
+def get_image_from_url(url):
+    """
+    Extracts the image URL from an article URL using Goose3 library.
+
+    Args:
+        url (str): The URL of the article to extract the image from.
+
+    Returns:
+        str: The URL of the extracted image, or None if the URL is
+            not safe or an error occurs.
+
+    Notes:
+        This function uses the Goose3 library to extract the article content.
+        The `is_url_safe` function is used to check if the
+        URL is safe to extract.
+        If a NetworkError or any other exception occurs during
+        the extraction process, an error message is logged and None
+        is returned.
+    """
+    g = Goose()
+    try:
+        if is_url_safe(url):
+            article = g.extract(url=url)
+            image_url = article.infos["opengraph"]["image"]
+        else:
+            image_url = None
+    except NetworkError as e:
+        logging.error("Network error occurred while fetching image: %s", e)
+        image_url = None
+    except Exception as e:
+        logging.error("Unexepted error occurred while fetching image: %s", e)
+        image_url = None
+    return image_url
+
+
+def get_text_from_url(url, processor="bs4"):
+    """
+    Extracts the title and text from an article at the given URL.
+
+    Args:
+        url (str): The URL of the article to extract.
+        processor (str, optional): The processor to use for extraction.
+            Defaults to "bs4" for BeautifulSoup. Can also be "goose3" for
+            Goose3.
+
+    Returns:
+        tuple: A tuple containing the title and text of the article.
+
+    Notes:
+        If processor is "bs4", the function uses BeautifulSoup to parse the
+        HTML content of the article. If processor is "goose3", the function
+        uses Goose3 to extract the article content.
+    """
+    if processor == "bs4":
+        html_content = fetch_article(url)
+        return parse_article(html_content)
+    elif processor == "goose3":
+        return parse_article_as_goose3(url)
 
 
 def text_to_html_list(text):
