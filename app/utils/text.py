@@ -38,7 +38,7 @@ def fetch_article(url):
             logging.error("Response content is too large: %s", url)
             raise ValueError("Response content is too large.")
 
-        return response.text
+        return response.text[:6000]
 
     except requests.RequestException as e:
         logging.error("Failed to fetch article: %s", str(e))
@@ -155,10 +155,16 @@ def parse_article_as_goose3(url):
         if the URL is safe to extract.
     """
     g = Goose()
+    g.config.browser_user_agent = "Mozilla/5.0 (Linux; Android 11; Pixel 5) \
+                                     AppleWebKit/537.36 (KHTML, like Gecko) \
+                                        Chrome/115.0.0.0 Mobile Safari/537.36"
+
     if is_url_safe(url):
         article = g.extract(url=url)
     else:
         return None, None
+    logging.debug("Goose3 extracted article title: %s", article.title)
+    logging.debug("Goose3 extracted article text: %s", article.cleaned_text)
     return article.title, article.cleaned_text
 
 
@@ -199,6 +205,7 @@ def get_image_from_url(url):
 
 def get_text_from_url(url, processor="bs4"):
     """
+
     Extracts the title and text from an article at the given URL.
 
     Args:
@@ -215,11 +222,26 @@ def get_text_from_url(url, processor="bs4"):
         HTML content of the article. If processor is "goose3", the function
         uses Goose3 to extract the article content.
     """
+
+    # BS4 Processor
     if processor == "bs4":
         html_content = fetch_article(url)
+        logging.debug("Extracting article content with bs4: %s", html_content)
         return parse_article(html_content)
+
+    # Goose3 processor
     elif processor == "goose3":
-        return parse_article_as_goose3(url)
+        g_result = parse_article_as_goose3(url)
+        logging.debug(
+            "Extracting article content with goose3: %s",
+            g_result,
+        )
+
+        if len(g_result[1]) == 0:
+            logging.error("No content found in article on proccessing.")
+            raise ValueError("No content found in article on proccessing.")
+
+        return g_result
 
 
 def text_to_html_list(text):
