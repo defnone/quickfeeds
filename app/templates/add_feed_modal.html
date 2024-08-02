@@ -17,8 +17,7 @@
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true">
-    <div
-        class="flex items-end md:items-center justify-center min-h-screen pt-4 md:px-4 pb-0 md:pb-20 text-center p-0">
+    <div class="flex items-end md:items-center justify-center min-h-screen pt-4 md:px-4 pb-0 md:pb-20 text-center p-0">
         <div
             class="fixed inset-0 bg-black bg-opacity-70 transition-opacity"
             aria-hidden="true"
@@ -69,8 +68,15 @@
                         <a
                             href="#"
                             id="create-category-link"
-                            class="w-full min-w-full text-gray-300 underline underline-offset-4"
+                            class="w-fit text-gray-300 underline underline-offset-4"
                             >Create a new category</a
+                        >
+                        <a
+                            href="#"
+                            id="choose-category-link"
+                            class="w-fit text-gray-300 underline underline-offset-4"
+                            style="display: none"
+                            >Choose an existing category</a
                         >
                     </div>
                 </div>
@@ -95,15 +101,11 @@
                         xmlns="http://www.w3.org/2000/svg">
                         <style>
                             .spinner_mHwL {
-                                animation: spinner_OeFQ 0.75s
-                                    cubic-bezier(0.56, 0.52, 0.17, 0.98)
-                                    infinite;
+                                animation: spinner_OeFQ 0.75s cubic-bezier(0.56, 0.52, 0.17, 0.98) infinite;
                                 fill: white;
                             }
                             .spinner_ote2 {
-                                animation: spinner_ZEPt 0.75s
-                                    cubic-bezier(0.56, 0.52, 0.17, 0.98)
-                                    infinite;
+                                animation: spinner_ZEPt 0.75s cubic-bezier(0.56, 0.52, 0.17, 0.98) infinite;
                                 fill: white;
                             }
                             @keyframes spinner_OeFQ {
@@ -167,88 +169,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    document
-        .getElementById('create-category-link')
-        .addEventListener('click', function (event) {
-            event.preventDefault();
-            document.getElementById('create-category-link').style.display =
-                'none';
-            document.getElementById('category-select').style.display = 'none';
-            document.getElementById('new-category-input').style.display =
-                'block';
-        });
-
-    document
-        .getElementById('submit-button')
-        .addEventListener('click', async function (event) {
-            event.preventDefault();
-
-            document.getElementById('loading-spinner').style.display = 'block';
-            document.querySelector('.add-feed-text').style.display = 'none';
-
-            const newCategoryInput =
-                document.getElementById('new-category-input');
-            const categorySelect = document.getElementById('category-select');
-            const categoryField = document.getElementById('category');
-
-            if (
-                newCategoryInput.style.display === 'block' &&
-                newCategoryInput.value.trim() !== ''
-            ) {
-                categoryField.value = newCategoryInput.value.trim();
-            } else {
-                categoryField.value =
-                    categorySelect.options[categorySelect.selectedIndex].text;
-            }
-
-            const form = document.getElementById('add_feed');
-            const formData = new FormData(form);
-
-            try {
-                const response = await fetch('/add_feed', {
-                    method: 'POST',
-                    body: formData,
-                });
-                const data = await response.json();
-
-                document.getElementById('loading-spinner').style.display =
-                    'none';
-                document.querySelector('.add-feed-text').style.display =
-                    'block';
-
-                if (data.success) {
-                    window.location.href = '/';
-                } else {
-                    document.getElementById('error').innerText = data.error;
-                }
-            } catch (error) {
-                document.getElementById('loading-spinner').style.display =
-                    'none';
-                document.querySelector('.add-feed-text').style.display =
-                    'block';
-                document.getElementById('error').innerText =
-                    'An error occurred while submitting the form.';
-                console.error('Error:', error);
-            }
-        });
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        const categorySelect = document.getElementById('category-select');
-
-        try {
-            const response = await fetch('/api/categories_and_blogs');
-            const data = await response.json();
-
-            data.categories_and_blogs.forEach((category) => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.text = category.name;
-                categorySelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error getting categories:', error);
-        }
-    });
-</script>
