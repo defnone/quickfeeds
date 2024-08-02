@@ -90,7 +90,7 @@ def remove_url_params(url):
     return urlunparse(parsed_url._replace(query=""))
 
 
-def clean_images(soup):
+def remove_duplicate_images(soup):
     """
     Remove duplicate images from the given BeautifulSoup object.
 
@@ -134,7 +134,7 @@ def clean_images(soup):
             continue
 
         if cleaned_src in unique_images:
-            logging.info("Duplicate image removed: %s", str(img))
+            logging.debug("Duplicate image removed: %s", str(img)[:100])
             img.unwrap()
         else:
             unique_images.add(cleaned_src)
@@ -182,8 +182,8 @@ def clean_summary(summary):
         for tag in soup.find_all(tag_name):
             tag.unwrap()
 
-    # Remove image doubles
-    soup = clean_images(soup)
+    # Remove images duplicates
+    soup = remove_duplicate_images(soup)
 
     # Handle iframes
     iframes = soup.find_all("iframe")
