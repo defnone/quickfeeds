@@ -1,0 +1,218 @@
+{% extends "menu.html" %} {% block content %} {% include "settings-top-menu.html" %}
+
+<div class="flex-col max-w-3xl mt-0 mb-16 px-6 md:px-0 md:pl-14 space-y-4">
+    <div class="flex flex-col space-y-0.5 mb-6">
+        <div class="space-x-4 mt-6 py-4">
+            <h2 class="text-xl text-gray-100 font-extrabold ml-4">
+                Daily
+                <span class="ml-2 mb-3 px-3 py-0.5 bg-orange-700 text-white rounded-full text-sm font-semibold"
+                    >Beta</span
+                >
+            </h2>
+            <div class="text-sm mt-4 text-gray-500">
+                These settings enable the Daily feature, which provides a summary of all your feeds in a single feed.
+                Please be aware that this is an experimental AI-based feature, and while it aims to deliver accurate
+                summaries, occasional errors may occur.
+
+                <br /><br />
+
+                Currently, it is strongly recommended to activate the feature only if you have no more than 100 feed
+                items per day. Accordingly, specify no more than 24 hours for summarization.
+            </div>
+        </div>
+
+        <!-- Enable Daily -->
+
+        <div
+            class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl mb-5">
+            <label class="w-full md:w-2/3 text-left text-gray-300">Enable Daily</label>
+            <div class="flex md:w-1/3 w-full">
+                <label
+                    x-data="{ isChecked: false }"
+                    for="active"
+                    class="relative h-7 ml-0 md:ml-3 w-14 cursor-pointer rounded-full transition"
+                    :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }">
+                    <input
+                        x-model="isChecked"
+                        type="checkbox"
+                        id="active"
+                        name="active"
+                        class="sr-only" />
+                    <span
+                        :class="{ 'start-0': !isChecked, 'start-6': isChecked }"
+                        class="absolute inset-y-0 m-1 size-5 rounded-full bg-gray-800 transition-all"></span>
+                </label>
+            </div>
+        </div>
+
+        <div
+            id="other-settings"
+            class="hidden pt-3 space-y-1">
+            <!-- Hours for summary -->
+
+            <div
+                x-data="{ input: '' }"
+                class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+                <label
+                    for="hours-summary"
+                    class="w-full md:w-2/3 text-left text-gray-300"
+                    >Number of hours for summarization</label
+                >
+                <input
+                    type="text"
+                    x-model="input"
+                    x-on:input="input = input.replace(/[^0-9]/g, '')"
+                    id="hours-summary"
+                    name="hours-summary"
+                    class="selects w-full md:w-1/3 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" />
+            </div>
+
+            <!-- Sync at -->
+
+            <div
+                x-data="{ input: '' }"
+                class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+                <label
+                    for="sync_at"
+                    class="w-full md:w-2/3 text-left text-gray-300"
+                    >Make sync at</label
+                >
+                <div class="flex w-full font-semibold md:w-1/3 pl-0 md:pl-3">
+                    <select
+                        name="hours"
+                        id="sync-at-hours"
+                        class="bg-transparent text-base appearance-none outline-none">
+                        <option value="00">00</option>
+                        <option value="01">01</option>
+                        <option value="02">02</option>
+                        <option value="03">03</option>
+                        <option value="04">04</option>
+                        <option value="05">05</option>
+                        <option value="06">06</option>
+                        <option value="07">07</option>
+                        <option value="08">08</option>
+                        <option value="09">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                    </select>
+                    <span class="text-base mr-1 ml-1">:</span>
+                    <select
+                        name="minutes"
+                        id="sync-at-minutes"
+                        class="bg-transparent text-base appearance-none outline-none mr-4">
+                        <option value="00">00</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Merge articles -->
+
+            <div
+                class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+                <label class="w-full md:w-2/3 text-left text-gray-300">Try to merge articles with similar titles</label>
+                <div class="flex md:w-1/3 w-full">
+                    <label
+                        x-data="{ isChecked: false }"
+                        for="title-compare"
+                        class="relative h-7 ml-0 md:ml-3 w-14 cursor-pointer rounded-full transition"
+                        :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }">
+                        <input
+                            x-model="isChecked"
+                            type="checkbox"
+                            id="title-compare"
+                            name="title-compare"
+                            class="sr-only" />
+                        <span
+                            :class="{ 'start-0': !isChecked, 'start-6': isChecked }"
+                            class="absolute inset-y-0 m-1 size-5 rounded-full bg-gray-800 transition-all"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Translate -->
+
+            <div
+                class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl mb-5">
+                <label class="w-full md:w-2/3 text-left text-gray-300">Translate</label>
+                <div class="flex md:w-1/3 w-full">
+                    <label
+                        x-data="{ isChecked: false }"
+                        for="translate"
+                        class="relative h-7 ml-0 md:ml-3 w-14 cursor-pointer rounded-full transition"
+                        :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }">
+                        <input
+                            x-model="isChecked"
+                            type="checkbox"
+                            id="translate"
+                            name="translate"
+                            class="sr-only" />
+                        <span
+                            :class="{ 'start-0': !isChecked, 'start-6': isChecked }"
+                            class="absolute inset-y-0 m-1 size-5 rounded-full bg-gray-800 transition-all"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Process read -->
+
+            <div
+                class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl mb-5">
+                <label class="w-full md:w-2/3 text-left text-gray-300">Process the read ones</label>
+                <div class="flex md:w-1/3 w-full">
+                    <label
+                        x-data="{ isChecked: false }"
+                        for="process-read"
+                        class="relative h-7 ml-0 md:ml-3 w-14 cursor-pointer rounded-full transition"
+                        :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }">
+                        <input
+                            x-model="isChecked"
+                            type="checkbox"
+                            id="process-read"
+                            name="process-read"
+                            class="sr-only" />
+                        <span
+                            :class="{ 'start-0': !isChecked, 'start-6': isChecked }"
+                            class="absolute inset-y-0 m-1 size-5 rounded-full bg-gray-800 transition-all"></span>
+                    </label>
+                </div>
+            </div>
+            <!-- Section title -->
+            <h2 class="text-xl text-gray-100 font-extrabold pt-10 pl-4">
+                Select the feeds to include in a summarization
+            </h2>
+
+            <!-- Feed list -->
+            <div
+                id="feed-list"
+                class="w-full flex flex-wrap pt-10 pb-6 px-4 rounded-xl mb-5 mt-10 justify-start items-center"></div>
+
+            <!-- Save settings -->
+            <div class="flex flex-col-reverse md:flex-row w-full"></div>
+
+            <button
+                class="block mt-10 mb-5 ml-3 md:ml-auto mr-5 font-extrabold bg-blue-600 hover:bg-blue-700 px-6 py-3 focus:outline-none rounded-md"
+                id="save-settings">
+                Save Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
