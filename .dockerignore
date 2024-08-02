@@ -13,3 +13,7 @@ docker-compose.yml
 htmlcov
 assets
 instance
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
