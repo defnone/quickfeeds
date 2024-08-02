@@ -135,12 +135,18 @@ def settings():
     )
 
 
+@routes_blueprint.route("/settings/daily", methods=["GET", "POST"])
+@login_required
+def settings_daily():
+    return render_template(
+        "settings-daily.html",
+        title="Daily Settings",
+    )
+
+
 @routes_blueprint.route("/settings/categories", methods=["GET"])
 @login_required
 def settings_categories():
-    """
-    Render the settings page.
-    """
     return render_template(
         "settings-manage-cat.html",
         title="Manage Categories",
