@@ -6,7 +6,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0" />
         <link
-            href="{{ url_for('static', filename='css/output.css') }}?v={{ version }}"
+            href="{{ url_for('static', filename='css/bundle.css') }}?v={{ version }}"
             rel="stylesheet" />
 
         <link
@@ -31,8 +31,9 @@
         <link
             rel="manifest"
             href="{{ url_for('static', filename='manifest.json')}}?v={{ version }}" />
-        <script src="{{url_for('static', filename='js/feed-list.js')}}?v={{ version }}"></script>
-        <script src="{{url_for('static', filename='js/main.js')}}?v={{ version }}"></script>
+        <script
+            defer
+            src="{{url_for('static', filename='js/bundle.js')}}?v={{ version }}"></script>
 
         <script
             defer
@@ -67,10 +68,8 @@
                     @click.away="if (window.innerWidth <= 768) slideOut = false"
                     id="Menu"
                     class="flex min-w-86 bg-slate-900 max-w-[90%] fixed inset-y-0 left-0 z-50">
-                    <div
-                        class="flex h-screen w-16 flex-col justify-between border-e border-e-gray-900">
-                        <div
-                            class="inline-flex size-16 pt-11 pb-11 items-center justify-center">
+                    <div class="flex h-screen w-16 flex-col justify-between border-e border-e-gray-900">
+                        <div class="inline-flex size-16 pt-11 pb-11 items-center justify-center">
                             <span class="grid size-10 place-content-center">
                                 <!-- LOGO -->
                                 <a href="/">
@@ -142,12 +141,49 @@
                                         {% include 'add_feed_modal.html' %}
                                     </div>
 
-                                    <div
-                                        class="border-b border-gray-900 mb-3"></div>
+                                    <!-- DIVIDER -->
+                                    <div class="border-b border-gray-900 mb-3"></div>
+
+                                    <!-- Daily -->
+                                    <a
+                                        href="/daily"
+                                        class="group relative flex justify-center rounded mt-3 {% if request.path == '/daily' %}text-gray-50 bg-gray-900 {% else %}text-gray-500 {% endif %} hover:bg-gray-900 hover:text-gray-50 active:bg-gray-900 px-2 py-1.5 active:text-gray-50">
+                                        <svg
+                                            class="w-6 h-6"
+                                            aria-hidden="true"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path
+                                                fill-rule="evenodd"
+                                                d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11.5c.07 0 .14-.007.207-.021.095.014.193.021.293.021h2a2 2 0 0 0 2-2V7a1 1 0 0 0-1-1h-1a1 1 0 1 0 0 2v11h-2V5a2 2 0 0 0-2-2H5Zm7 4a1 1 0 0 1 1-1h.5a1 1 0 1 1 0 2H13a1 1 0 0 1-1-1Zm0 3a1 1 0 0 1 1-1h.5a1 1 0 1 1 0 2H13a1 1 0 0 1-1-1Zm-6 4a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm0 3a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1ZM7 6a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H7Zm1 3V8h1v1H8Z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+
+                                        <span
+                                            class="invisible absolute start-full top-1/2 ms-4 -translate-y-1/2 rounded bg-gray-900 px-2 py-1.5 text-sm font-medium text-white group-hover:visible">
+                                            Daily
+                                        </span>
+                                        <span class="hidden absolute top-0 right-1">
+                                            <svg
+                                                width="15px"
+                                                height="15px"
+                                                viewBox="0 0 16 16"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none">
+                                                <path
+                                                    d="M8 3a5 5 0 100 10A5 5 0 008 3z"
+                                                    fill="#077fff" />
+                                            </svg>
+                                        </span>
+                                    </a>
+
                                     <!-- SETTINGS -->
                                     <a
                                         href="/settings"
-                                        class="group relative flex justify-center rounded {% if request.path == '/settings' or request.path == '/settings/categories' %}text-gray-50 bg-gray-900 {% else %}text-gray-500 {% endif %} hover:bg-gray-900 hover:text-gray-50 active:bg-gray-900 px-2 py-1.5 active:text-gray-50">
+                                        class="group relative flex justify-center rounded mt-2 {% if request.path == '/settings' or request.path == '/settings/categories' %}text-gray-50 bg-gray-900 {% else %}text-gray-500 {% endif %} hover:bg-gray-900 hover:text-gray-50 active:bg-gray-900 px-2 py-1.5 active:text-gray-50">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 24 24"
@@ -170,8 +206,7 @@
                         </div>
 
                         <!-- Logout -->
-                        <div
-                            class="sticky inset-x-0 bottom-0 border-t border-gray-900 bg-slate-900 p-2">
+                        <div class="sticky inset-x-0 bottom-0 border-t border-gray-900 bg-slate-900 p-2">
                             <a
                                 href="/logout"
                                 class="group relative flex justify-center rounded-md px-2 py-1.5 text-gray-500 hover:bg-gray-900 hover:text-gray-50">
@@ -201,8 +236,7 @@
                 </div>
 
                 <!-- MENU BUTTON -->
-                <div class="fixed top-0 right-0 px-5 py-6 text-white md:hidden"
-                style"z-index: 1000">
+                <div class="fixed top-0 right-0 px-5 py-6 text-white md:hidden" style"z-index: 1000">
                 <button
                     @click="slideOut = !slideOut"
                     class="sticky focus:outline-none z-40">
@@ -236,21 +270,9 @@
 
         function adjustMenuClasses() {
             if (window.innerWidth >= 768) {
-                menu.classList.remove(
-                    'fixed',
-                    'inset-y-0',
-                    'left-0',
-                    'z-50',
-                    'max-w-[90%]'
-                );
+                menu.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-50', 'max-w-[90%]');
             } else {
-                menu.classList.add(
-                    'fixed',
-                    'inset-y-0',
-                    'left-0',
-                    'z-50',
-                    'max-w-[90%]'
-                );
+                menu.classList.add('fixed', 'inset-y-0', 'left-0', 'z-50', 'max-w-[90%]');
             }
         }
 
