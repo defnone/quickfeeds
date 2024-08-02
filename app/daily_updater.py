@@ -21,7 +21,7 @@ from app.models import (
 )
 from app.utils.text import get_text_from_url, get_image_from_url
 from app.utils.groq import groq_compare_titles, groq_request
-from app.utils.chatgpt import openai_request_list
+from app.utils.chatgpt import openai_compare_titles
 from app.utils.promts import COMPARE_TITLES, SUMMARIZE_ONE
 from app.utils.translate import translate_text_google
 
@@ -551,7 +551,7 @@ def process_and_summarize_articles() -> None:
                 titles_dict, groq_api_key, COMPARE_TITLES
             )
         elif title_provider == "openai":
-            response = openai_request_list(
+            response = openai_compare_titles(
                 titles_dict, openai_api_key, COMPARE_TITLES
             )
 
