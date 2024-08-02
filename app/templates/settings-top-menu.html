@@ -1,12 +1,17 @@
-<div class="flex px-6 md:pl-14 w-full mt-16 md:mt-8">
+<div class="flex px-6 md:pl-14 w-full mt-16 md:mt-8 overflow-y-auto">
     <a
         href="/settings"
-        class="text-base px-4 pt-2 pb-2 border rounded-xl font-extrabold mr-3 text-gray-200 hover:text-white focus:outline-none {% if request.path == '/settings' %}text-gray-200 bg-stone-800 border-stone-800 {% else %} border-stone-800 hover:bg-blue-950 hover:border-blue-950 text-white{% endif %}"
+        class="text-nowrap text-base px-4 pt-2 pb-2 border rounded-xl font-extrabold mr-3 text-gray-200 hover:text-white focus:outline-none {% if request.path == '/settings' %}text-gray-200 bg-stone-800 border-stone-800 {% else %} border-stone-800 hover:bg-blue-950 hover:border-blue-950 text-white{% endif %}"
         >Settings</a
     >
     <a
+        href="/settings/daily"
+        class="text-nowrap text-base px-4 pt-2 pb-2 border rounded-xl font-extrabold mr-3 text-gray-200 hover:text-white focus:outline-none {% if request.path == '/settings/daily' %}text-gray-200 bg-stone-800 border-stone-800 {% else %} border-stone-800 hover:bg-blue-950 hover:border-blue-950 text-white{% endif %}"
+        >Daily Settings</a
+    >
+    <a
         href="/settings/categories"
-        class="text-base px-4 pt-2 pb-2 border rounded-xl font-extrabold mr-3 text-gray-200 hover:text-white focus:outline-none {% if request.path == '/settings/categories' %}text-gray-200 bg-stone-800 border-stone-800 {% else %} border-stone-800 hover:bg-blue-950 hover:border-blue-950 text-white{% endif %}"
+        class="text-nowrap text-base px-4 pt-2 pb-2 border rounded-xl font-extrabold mr-3 text-gray-200 hover:text-white focus:outline-none {% if request.path == '/settings/categories' %}text-gray-200 bg-stone-800 border-stone-800 {% else %} border-stone-800 hover:bg-blue-950 hover:border-blue-950 text-white{% endif %}"
         >Manage Categories</a
     >
 </div>
