@@ -6,7 +6,7 @@ from app.utils.groq import check_groq_api
 api_groq_blueprint = Blueprint("api_groq_blueprint", __name__)
 
 
-@api_groq_blueprint.route("/check", methods=["POST"])
+@api_groq_blueprint.route("/check", methods=["GET"])
 @login_required
 def check_groq():
     """
@@ -29,7 +29,7 @@ def check_groq():
     if not user_settings or not user_settings.groq_api_key:
         return jsonify({"status": "error", "message": "No GROQ API key found"})
 
-    if not check_groq_api("ping", user_settings.groq_api_key):
+    if not check_groq_api(user_settings.groq_api_key):
         return jsonify({"status": "error", "message": "GROQ API check failed"})
 
     return jsonify({"status": "success"})
