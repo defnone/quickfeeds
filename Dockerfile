@@ -1,6 +1,6 @@
 # Use a multi-stage build to reduce the final image size
 # Stage 1: Build and install dependencies
-FROM python:3.12.3-slim as builder
+FROM python:3.12.3-slim AS builder
 WORKDIR /build
 COPY requirements.txt .
 RUN apt-get update && apt-get install -y build-essential gcc libpq-dev \
