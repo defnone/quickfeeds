@@ -3,9 +3,9 @@
 FROM python:3.12.3-slim AS builder
 WORKDIR /build
 COPY requirements.txt .
-RUN apt-get update && apt-get install -y build-essential gcc libpq-dev \
+RUN apt-get update && apt-get install -y build-essential gcc \
     && pip install --no-cache-dir -r requirements.txt \
-    && apt-get purge -y --auto-remove build-essential gcc libpq-dev \
+    && apt-get purge -y --auto-remove build-essential gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Create the final image
@@ -19,7 +19,7 @@ ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=8000
 ENV LOG_LEVEL=INFO
 ENV LOG_FILE=logs/app.log
-
+ENV FLASK_ENV=PROD
 # Copy the entrypoint script and give it execution permissions
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
