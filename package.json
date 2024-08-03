@@ -3,15 +3,20 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "build-css": "tailwindcss -i ./app/static/css/styles.css -o ./app/static/css/output.css --minify"
+        "build:js": "esbuild src/js/index.js --bundle --outfile=app/static/js/bundle.js --minify --watch",
+        "build:css": "tailwindcss -i ./src/css/styles.css -o ./app/static/css/bundle.css --minify --watch",
+        "build:all": "npm run build:css && npm run build:js"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "description": "",
     "devDependencies": {
+        "@eslint/js": "^9.7.0",
         "autoprefixer": "^10.4.19",
+        "esbuild": "^0.23.0",
+        "eslint": "^9.7.0",
+        "globals": "^15.8.0",
         "nodemon": "^3.1.0",
         "postcss": "^8.4.38",
         "tailwindcss": "^3.4.4"
