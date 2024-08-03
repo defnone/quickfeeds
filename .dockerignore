@@ -17,3 +17,4 @@ instance
 .flaskenv*
 !.env.project
 !.env.vault
+src
