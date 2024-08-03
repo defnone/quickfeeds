@@ -11,6 +11,7 @@ from .api.v1.settings import api_settings_blueprint
 from .api.v1.summarize import api_summarize_blueprint
 from .api.v1.groq import api_groq_blueprint
 from .api.v1.settings_categories import settings_categories_blueprint
+from .api.v1.daily import api_daily_blueprint
 from .routes.routes import routes_blueprint
 from .routes.add_feed import add_feed_blueprint
 from .routes.mark_as_read import mark_as_read_blueprint
@@ -94,6 +95,11 @@ def create_app(config_name=None):
     app.register_blueprint(
         settings_categories_blueprint, url_prefix="/api/settings/categories"
     )
+
+    # Daily blueprint, api_daily_blueprint,
+    # with a URL prefix of /api/daily etc. This suggests that the application
+    # is a web API with a Daily feature.
+    app.register_blueprint(api_daily_blueprint, url_prefix="/api/daily")
 
     app.context_processor(inject_version)
 
