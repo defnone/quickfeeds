@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from app.models import Settings
@@ -80,4 +81,17 @@ def summarize():
             )
 
     response = text_to_html_list(response)
+    print(response)
+    if len(response) == 0:
+        return (
+            logging.error("Blank summary %s", response),
+            jsonify(
+                {
+                    "status": "error",
+                    "error": "Failed to summarize: blank response",
+                }
+            ),
+            500,
+        )
+
     return jsonify({"summary": response}), 200
