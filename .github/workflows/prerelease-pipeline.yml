@@ -7,7 +7,6 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/dev'
 
         steps:
             - name: Checkout repository
