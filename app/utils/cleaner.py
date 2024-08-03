@@ -2,7 +2,6 @@ import logging
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup, Comment
 
-
 # Global constants for allowed tags and attributes
 ALLOWED_TAGS = [
     "iframe",
@@ -141,6 +140,52 @@ def remove_duplicate_images(soup):
     return soup
 
 
+def remove_url_params(url):
+    """
+    Removes all parameters from a URL.
+    """
+    parsed_url = urlparse(url)
+    return urlunparse(parsed_url._replace(query=""))
+
+
+def clean_images(soup):
+    """
+    Remove duplicate images from a BeautifulSoup object.
+
+    :param soup: BeautifulSoup object
+    :return: Modified BeautifulSoup object with duplicate images removed
+    """
+    images = soup.find_all("img")
+    if not images:
+        logging.warning("No img tags found")
+        return soup
+
+    unique_images = set()
+
+    for img in images:
+        if img is None or "src" not in str(img):
+            logging.warning("Img tag is None")
+            continue
+
+        img_src = img.get("src")
+        if img_src is None:
+            logging.warning("Img tag missing src attribute")
+            continue
+
+        try:
+            cleaned_src = remove_url_params(img_src)
+        except Exception as e:
+            logging.error("Error cleaning URL: %s", str(e))
+            continue
+
+        if cleaned_src in unique_images:
+            logging.info("Duplicate image removed: %s", str(img))
+            img.unwrap()
+        else:
+            unique_images.add(cleaned_src)
+    return soup
+
+
 def clean_summary(summary):
     """
     This function cleans and formats the summary text of channel items. It
@@ -184,6 +229,9 @@ def clean_summary(summary):
 
     # Remove images duplicates
     soup = remove_duplicate_images(soup)
+
+    # Remove image doubles
+    soup = clean_images(soup)
 
     # Handle iframes
     iframes = soup.find_all("iframe")
