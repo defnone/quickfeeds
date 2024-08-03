@@ -69,6 +69,18 @@
             </select>
         </div>
 
+        <!-- Font Size -->
+        <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
+            <label for="font-size" class="w-full md:w-1/2 text-left text-gray-300">Article Font Size</label>
+            <select
+                id="font-size"
+                name="font-size"
+                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2">
+                    <option value="text-lg">Lg</option>
+                    <option value="text-base">Base</option>
+                    
+            </select>
+        </div>
         
         <!-- AI summary settings -->
         <div class="space-x-4 mt-6 py-4">
@@ -134,168 +146,10 @@
         
         <!-- Web app message -->
         <div class="flex flex-row w-full">
-            <div id="web-app-message" class="flex items-center px-6 py-4 text-gray-400 text-sm" style="letter-spacing: 1.0px"></div>
+            <div id="web-app-message" class="flex items-center px-6 py-4 text-gray-500 text-sm"></div>
         </div>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const updateIntervalInput = document.getElementById('update-interval');
-        const cleanAfterInput = document.getElementById('clean-after');
-        const timezoneSelect = document.getElementById('timezone');
-        const languageSelect = document.getElementById('language');
-        const groqApiKeyInput = document.getElementById('groq-api-key');
-        const checkGroqApiKeyButton = document.getElementById('check-groq-api-key');
-        const translateToggle = document.getElementById('translate');
-        const changePasswordButton = document.getElementById('change_password');
-        const newPasswordInput = document.getElementById('new_password');
-        const confirmPasswordInput = document.getElementById('confirm_password');
-        const saveSettingsButton = document.getElementById('save-settings');
-
-        function getUserSettings() {
-            fetch('/api/settings', {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    updateIntervalInput.value = data.update_interval;
-                    cleanAfterInput.value  = data.clean_after_days;
-                    timezoneSelect.value = data.timezone;
-                    languageSelect.value = data.language;
-                    groqApiKeyInput.value = data.groq_api_key;
-                    translateToggle.checked = data.translate;
-                    translateToggle.dispatchEvent(new Event('change'));
-                })
-                .catch((error) => {
-                    console.error('Error fetching settings:', error);
-                    showMessage('Failed to load settings', 'error');
-                });
-        }
-
-        function saveUserSettings() {
-            return new Promise((resolve, reject) => {
-                const updateInterval = updateIntervalInput.value;
-                const cleanAfterDays  = cleanAfterInput.value;
-                const timezone = timezoneSelect.value;
-                const language = languageSelect.value;
-                const translate = translateToggle.checked;
-                let groqApiKey = groqApiKeyInput.value;
-
-                let settings = {
-                    update_interval: updateInterval,
-                    clean_after_days: cleanAfterDays,
-                    timezone: timezone,
-                    language: language,
-                    translate: translate,
-                };
-
-                if (!/^[\*]+$/.test(groqApiKey)) {
-                    settings.groq_api_key = groqApiKey;
-                }
-
-                fetch('/api/settings', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(settings),
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        showMessage('Settings saved successfully', 'success');
-                        resolve(data);
-                    })
-                    .catch((error) => {
-                        console.error('Error saving settings:', error);
-                        showMessage('Failed to save settings', 'error');
-                        reject(error);
-                    });
-            });
-        }
-
-        function checkGroqApiKey() {
-            saveUserSettings().then(() => {
-                const groqApiKey = groqApiKeyInput.value;
-                fetch('/api/groq/check', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        groq_api_key: groqApiKey,
-                    }),
-                })
-                .then((response) => response.json())
-                .then((data) => {
-                    if (data.status === 'success') {
-                        showMessage('API key is valid', 'success');
-                    } else {
-                        showMessage('API key is invalid', 'error');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error checking API key:', error);
-                    showMessage('Failed to check API key', 'error');
-                });
-            });
-        }
-
-        function changePassword() {
-            const newPassword = newPasswordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-
-            fetch('/api/settings/change_password', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    new_password: newPassword,
-                    confirm_password: confirmPassword,
-                }),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    if (data.status === 'success') {
-                        showMessage('Password changed successfully', 'success');
-                    } else {
-                        showMessage(data.error, 'error');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error changing password:', error);
-                    showMessage('Failed to change password', 'error');
-                });
-        }
-
-        checkGroqApiKeyButton.addEventListener('click', checkGroqApiKey);
-        changePasswordButton.addEventListener('click', changePassword);
-        saveSettingsButton.addEventListener('click', saveUserSettings);
-
-        getUserSettings();
-    });
-
-    function isSafari() {
-        const userAgent = navigator.userAgent.toLowerCase();
-        return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('android');
-    }
-
-    function isNotWebApp() {
-        return !window.navigator.standalone;
-    }
-
-    if (isSafari() && isNotWebApp()) {
-        document.getElementById('web-app-message').innerText = 'You can create a Safari web app and open it as an application on your device (on macOS Sonoma and later or iOS 11.3 and later). Click the share button and select "Add to Dock" or "Add to Home Screen".';
-    }
-
-</script>
 
 {% endblock %}
