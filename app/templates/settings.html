@@ -91,13 +91,15 @@
         <!-- Groq API key -->
         <div class="flex-col md:flex-row flex items-start md:items-center justify-start space-x-0 md:space-x-4 space-y-4 md:space-y-0 px-6 py-4 bg-slate-900 rounded-xl">
             <label for="groq-api-key" class="w-full md:w-1/2 text-left text-gray-300">Groq API key</label>
-            <input
-                type="text"
-                id="groq-api-key"
-                name="groq-api-key"
-                placeholder="Enter your Groq API key"
-                class="selects w-full md:w-1/2 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
-            <button id="check-groq-api-key" class="ml-4 px-4 py-2 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Check</button>
+            <div class="flex w-fit md:w-1/2">
+                <input
+                    type="text"
+                    id="groq-api-key"
+                    name="groq-api-key"
+                    placeholder="Enter your Groq API key"
+                    class="selects w-60 border-2 focus:outline-none focus:border-blue-500 border-transparent bg-slate-800 focus:bg-stone-800 rounded-lg px-4 py-2" /> 
+                <button id="check-groq-api-key" class="ml-4 px-4 py-2 font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md focus:outline-none">Check</button>
+            </div>
         </div>
 
         <!-- Translate -->
@@ -107,7 +109,7 @@
                 <label
                     x-data="{ isChecked: false }"
                     for="translate"
-                    class="relative h-8 w-14 cursor-pointer rounded-full transition"
+                    class="relative h-8 w-14 ml-0 md:ml-3 cursor-pointer rounded-full transition"
                     :class="{ 'bg-gray-500': !isChecked, 'bg-green-500': isChecked }">
                     <input x-model="isChecked" type="checkbox" id="translate" name="translate" class="sr-only" />
                     <span :class="{ 'start-0': !isChecked, 'start-6': isChecked }" class="absolute inset-y-0 m-1 size-6 rounded-full bg-gray-800 transition-all"></span>
