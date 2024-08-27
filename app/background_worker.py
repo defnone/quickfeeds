@@ -53,10 +53,16 @@ def remove_lockfile():
         logging.debug("Lockfile removed")
 
 
-def process_and_summarize_articles_with_context(app):
+def process_and_summarize_articles_with_context(sheduler, app):
     with app.app_context():
         start_time = datetime.now(utc)
-        process_and_summarize_articles()
+        try:
+            process_and_summarize_articles()
+        except Exception as e:
+            logging.error("Error processing and summarizing articles: %s", e)
+            schedule_daily_sync(sheduler, app, pause=10)
+            return
+
         end_time = datetime.now(utc)
 
         duration_seconds = (end_time - start_time).total_seconds()
@@ -70,9 +76,10 @@ def process_and_summarize_articles_with_context(app):
         db.session.commit()
 
         logging.info("Task completed in %s minutes", duration_minutes)
+    schedule_daily_sync(sheduler, app)
 
 
-def schedule_daily_sync(scheduler, app):
+def schedule_daily_sync(scheduler, app, pause=3):
     with app.app_context():
         user = db.session.query(User).first()
 
@@ -109,7 +116,7 @@ def schedule_daily_sync(scheduler, app):
             )
 
             if run_time <= now:
-                run_time = now + timedelta(minutes=3)
+                run_time = now + timedelta(minutes=pause)
                 logging.info(
                     "run_time is in the past, "
                     "setting run_time to 3 minutes from now"
@@ -120,7 +127,7 @@ def schedule_daily_sync(scheduler, app):
                 DateTrigger(run_date=run_time),
                 id="daily_sync_job",
                 replace_existing=True,
-                args=[app],
+                args=[scheduler, app],
             )
             logging.info("Daily sync job scheduled to run at %s", run_time)
 
