@@ -59,13 +59,15 @@ def daily_feed():
         db.session.query(SummarizedArticle)
         .join(ArticleLink)
         .join(FeedItem)
-        .order_by(FeedItem.pub_date.desc())
+        .order_by(
+            SummarizedArticle.pub_date.desc(), SummarizedArticle.id.desc()
+        )
     )
 
-    if not last_item_id or (unread and not last_item_id):
+    if not last_item_id:
         session["issued_articles"] = []
 
-    issued_articles = session.get("issued_articles", [])
+    issued_articles = set(session.get("issued_articles", []))
 
     if last_item_id:
         last_item = (
@@ -73,15 +75,14 @@ def daily_feed():
             .filter_by(id=last_item_id)
             .first()
         )
-        if last_item:
-
-            last_item_pub_date = (
-                last_item.original_articles[0].original_article.pub_date
-                if last_item.original_articles
-                else None
-            )
-            if last_item_pub_date:
-                query = query.filter(FeedItem.pub_date <= last_item_pub_date)
+        if last_item and last_item.original_articles:
+            first_article = last_item.original_articles[0].original_article
+            if first_article:
+                last_item_pub_date = first_article.pub_date
+                if last_item_pub_date:
+                    query = query.filter(
+                        SummarizedArticle.pub_date < last_item_pub_date
+                    )
 
     if unread:
         query = query.filter(SummarizedArticle.read == False)
@@ -89,7 +90,8 @@ def daily_feed():
     summarized_articles = query.limit(limit * 2).all()
 
     result = []
-    new_issued_articles = issued_articles[:]
+    new_issued_articles = list(issued_articles)
+
     for summarized_article in summarized_articles:
         if summarized_article.id in issued_articles:
             continue
