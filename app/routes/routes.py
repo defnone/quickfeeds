@@ -21,6 +21,7 @@ def index():
     """
     Render the index page or redirect to 'all_items' if no unread items.
     """
+
     user_settings = get_user_settings(current_user.id)
     if not user_settings.unread:
         return redirect(url_for("routes.all_items"))
