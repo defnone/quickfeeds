@@ -174,6 +174,7 @@ class SummarizedArticle(db.Model):
     summary = db.Column(db.Text)
     link = db.Column(db.String, unique=True)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    pub_date = db.Column(db.DateTime, nullable=True)
     image_link = db.Column(db.String, nullable=True)
     read = db.Column(db.Boolean, default=False, nullable=False)
     original_articles = db.relationship(
