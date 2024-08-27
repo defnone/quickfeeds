@@ -59,10 +59,10 @@ export function loadMoreItems() {
                                 <div class="tb-feed-date">${formattedDate}</div> 
                                 <div class="tb-feed-author">${creatorContent}</div>
                             </div>
-                            <div x-data="{ expanded: false }" class="feed-content relative ${
+                            <div id="exp-hidden" x-data="{ expanded: false }" class="feed-content relative ${
                                 localStorage.getItem('font-size') ? localStorage.getItem('font-size') : 'text-lg'
                             }" :class="{ 'overflow-hidden': !expanded, 'max-h-none overflow-visible': expanded }">
-                                ${item.summary}
+                                ${item.summary}c
                                 <div class="absolute bottom-0 left-0 w-full h-60 bg-gradient-to-t from-slate-800 via-slate-800/90 to-slate-800/0 pointer-events-none" x-show="!expanded"></div>
                                 <button class="absolute bottom-0 left-0 w-full text-center py-2 font-bold text-white transition-colors focus:outline-none" x-show="!expanded" @click="expanded = true">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-11 w-15 h-15 ml-auto mr-auto shadow-2xl shadow-stone-950 bg-black transition duration-50 hover:bg-stone-700 mb-4 p-3 rounded-full gradient-arrow">
