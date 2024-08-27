@@ -90,6 +90,32 @@ function getDailySettings() {
         });
 }
 
+function disableDaily() {
+    const data = {
+        hours_summary: hoursSummary.value,
+        process_read: processRead.checked,
+        translate: translate.checked,
+        compare_titles: compareTitles.checked,
+        active: active.checked,
+        sync_at: `${syncAtHours.value}:${syncAtMinutes.value}:00`,
+    };
+    fetch('/api/settings/daily', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+    })
+        .then((response) => response.json())
+        .then(() => {
+            //showMessage('Daily settings disabled', 'success');
+            getDailySettings();
+        })
+        .catch((err) => {
+            console.log('Error: ', err);
+            showMessage('Error disabling daily settings', 'error');
+        });
+}
+
 function postDailySettings() {
     const data = {
         hours_summary: hoursSummary.value,
@@ -126,6 +152,11 @@ function eventListeners() {
         } else {
             otherSettings.classList.remove('flex', 'flex-col');
             otherSettings.classList.add('hidden');
+        }
+    });
+    active.addEventListener('click', () => {
+        if (!active.checked) {
+            disableDaily();
         }
     });
 
