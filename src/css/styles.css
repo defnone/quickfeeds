@@ -188,7 +188,7 @@
     }
 
     .active-feed {
-        @apply block w-full pl-2 pr-1 pb-1.5 pt-1.5 mt-1 -mb-1 -ml-2 mr-1 text-sm rounded-lg text-white bg-gray-900 bg-opacity-70 hover:text-white active:bg-stone-900 focus:border-0 focus:outline-none;
+        @apply block w-full pl-2 pr-1 pb-1.5 pt-1.5 mt-1 -mb-0 -ml-2 mr-1 text-sm rounded-lg text-white bg-gray-900 bg-opacity-70 hover:text-white active:bg-stone-900 focus:border-0 focus:outline-none;
     }
 
     .empty-message {
