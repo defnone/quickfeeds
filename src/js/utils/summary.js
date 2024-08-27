@@ -12,6 +12,7 @@ export function summarizeEnetListener() {
             let feedContent;
             let postUrl;
             let itemTitle;
+            let expHidden;
 
             if (summarizeBtn.classList.contains('ai-summarize-daily-btn')) {
                 articleId = summarizeBtn.dataset.id;
@@ -25,6 +26,12 @@ export function summarizeEnetListener() {
                 postUrl = feedItem.querySelector('.item-title a').href;
                 articleId = feedItem.dataset.id;
                 feedContent = feedItem.querySelector('.feed-content');
+                expHidden = feedItem.querySelector('#exp-hidden');
+
+                if (expHidden) {
+                    expHidden.setAttribute('x-data', '{expanded: true}');
+                    expHidden.style.maxHeight = 'none';
+                }
             }
 
             const itemPosition = itemTitle.getBoundingClientRect().top + window.scrollY;
@@ -70,6 +77,11 @@ export function summarizeEnetListener() {
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.status === 'error') {
+                            if (data.error.includes('Failed to get text')) {
+                                feedContent.innerHTML = originalContent;
+                                showMessage('Failed to get article text from the URL.', 'error');
+                                return;
+                            }
                             showMessage(
                                 'Error summarizing the text. Check Groq API in <a class="underline" href="/settings">Settings</a>.',
                                 'error'
