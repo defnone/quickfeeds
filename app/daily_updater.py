@@ -1,6 +1,7 @@
 import re
 import logging
 from datetime import datetime, timedelta, timezone
+import numpy as np
 
 import pandas as pd
 import nltk
@@ -33,8 +34,12 @@ logger = logging.getLogger(__name__)
 nltk.download("punkt", quiet=True)
 
 app = create_app(db)
-with app.app_context():
-    settings = Settings.query.join(User).order_by(User.id).first()
+try:
+    with app.app_context():
+        settings = Settings.query.join(User).order_by(User.id).first()
+except Exception as e:
+    logger.error("Failed to get settings: %s", e)
+    settings = None
 
 
 def clean_text(text: str) -> str:
@@ -195,6 +200,7 @@ def fetch_recent_articles(hours: int = 24) -> pd.DataFrame:
             "text": (item.title if item.title else "") * 5
             + " "
             + (item.summary if item.summary else ""),
+            "pub_date": item.pub_date,  # <-- Добавляем pub_date
         }
         for item in items
     ]
@@ -256,7 +262,7 @@ def summarize_clusters(
         }
         logger.info("Sending for similarity check: %s", titles_dict)
 
-        max_retries = 3
+        max_retries = 6
         for attempt in range(max_retries):
             try:
                 response = groq_compare_titles(
@@ -445,12 +451,26 @@ def save_summaries_to_db(processed_summaries: dict, df: pd.DataFrame) -> None:
                     e,
                 )
 
+        # Получаем значение pub_date и преобразуем его в datetime, если это необходимо
+        pub_date_value = df.loc[df["link"] == links[0], "pub_date"].values[0]
+        if isinstance(pub_date_value, pd.Timestamp):
+            original_article_date = pub_date_value.to_pydatetime()
+        elif isinstance(pub_date_value, np.datetime64):
+            original_article_date = pd.to_datetime(
+                pub_date_value
+            ).to_pydatetime()
+        else:
+            original_article_date = pub_date_value
+
         if not summarized_article:
             if settings.daily_translate:
                 summary = translate_text_google(summary, settings.language)
 
             summarized_article = SummarizedArticle(
-                summary=summary, link=links[0], image_link=image_link
+                summary=summary,
+                link=links[0],
+                image_link=image_link,
+                pub_date=original_article_date,
             )
             db.session.add(summarized_article)
             db.session.commit()
@@ -459,7 +479,12 @@ def save_summaries_to_db(processed_summaries: dict, df: pd.DataFrame) -> None:
                 summarized_article.id,
             )
         else:
+            # Обновление существующего SummarizedArticle
             summarized_article.image_link = image_link
+            if not summarized_article.pub_date:
+                summarized_article.pub_date = (
+                    original_article_date  # <-- обновление pub_date
+                )
             db.session.commit()
             logger.info(
                 "Using existing summarized article with id: %s",
@@ -542,7 +567,8 @@ def process_and_summarize_articles() -> None:
     if df.empty:
         return
 
-    # Prepare titles for similarity checking if needed.
+    clusters = []
+
     if compare_titles:
         titles_dict = {i: title for i, title in enumerate(df["title"][:1000])}
 
@@ -557,12 +583,13 @@ def process_and_summarize_articles() -> None:
 
         if response is None:
             logger.info("No similar titles found.")
-            clusters = []
         else:
             clusters = response
     else:
-        clusters = []
         logger.info("Skipping title comparison based on settings.")
+
+    if not clusters:
+        clusters = [[i] for i in range(len(df))]
 
     summaries, titles_and_links = summarize_clusters(clusters, df)
     processed_summaries = summarize_batched_text(summaries, titles_and_links)
