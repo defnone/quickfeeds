@@ -35,7 +35,7 @@ def register():
         db.session.commit()
 
         login_user(user)
-        return redirect(url_for("routes.index"))
+        return redirect(url_for("routes.index", firstRun=True))
     return render_template("register.html", title="First Run")
 
 
