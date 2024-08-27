@@ -42,8 +42,15 @@ def summarize():
         )
 
     url = data.get("url")
-    query = get_text_from_url(url, processor="goose3")
-
+    try:
+        query = get_text_from_url(url, processor="goose3")
+    except Exception as e:
+        return (
+            jsonify(
+                {"status": "error", "error": f"Failed to get text: {str(e)}"}
+            ),
+            500,
+        )
     if not query:
         return (
             jsonify(
