@@ -7,7 +7,7 @@ export function swipeToReload() {
     window.addEventListener('touchend', (event) => {
         const endY = event.changedTouches[0].clientY;
         const distance = endY - startY;
-        if (distance > 200) {
+        if (distance > 200 && window.scrollY < 50) {
             location.reload();
         }
     });
