@@ -81,7 +81,11 @@ def daily_feed():
                 last_item_pub_date = first_article.pub_date
                 if last_item_pub_date:
                     query = query.filter(
-                        SummarizedArticle.pub_date < last_item_pub_date
+                        (SummarizedArticle.pub_date < last_item_pub_date)
+                        | (
+                            (SummarizedArticle.pub_date == last_item_pub_date)
+                            & (SummarizedArticle.id < last_item.id)
+                        )
                     )
 
     if unread:
