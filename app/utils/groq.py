@@ -75,7 +75,7 @@ def groq_compare_titles(text, api_key, prompt="Summarize the text"):
     text = str(text)
     client = Groq(api_key=api_key, timeout=10.0)
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
+        model="llama-3.2-90b-text-preview",
         messages=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": text},
