@@ -61,7 +61,7 @@ def summarize():
 
     try:
         response = groq_request(
-            query, current_user_settings.groq_api_key, SUMMARIZE
+            query, current_user_settings.groq_api_key, SUMMARIZE, model="90b"
         )
     except Exception as e:
         return (

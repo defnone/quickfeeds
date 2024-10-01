@@ -19,6 +19,8 @@ def groq_request(
         model = "llama-3.1-70b-versatile"
     elif model == "8b":
         model = "llama-3.1-8b-instant"
+    elif model == "90b":
+        model = "llama-3.2-90b-text-preview"
 
     client = Groq(api_key=api_key, timeout=10.0)
     completion = client.chat.completions.create(
@@ -91,6 +93,8 @@ def groq_compare_titles(text, api_key, prompt="Summarize the text"):
             "return None for skipping. Error: %s",
             e,
         )
+
+    # print("Groq title response", response)
 
     if response in [None, "(None)", "None"]:
         return None
