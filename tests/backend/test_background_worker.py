@@ -4,7 +4,7 @@ import threading
 import logging
 from unittest import mock
 import time
-from datetime import datetime, timedelta
+import datetime
 from pytz import timezone as pytz_timezone, utc
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.background_worker import (
@@ -16,6 +16,9 @@ from app.background_worker import (
     running,
 )
 from app import create_app, db
+from contextlib import contextmanager
+import apscheduler.schedulers.background
+from threading import Event
 
 LOCKFILE = "/tmp/scheduler.lock"
 
@@ -37,7 +40,13 @@ def mock_user():
     user = mock.Mock()
     user.settings.timezone = "UTC"
     user.settings.update_interval = 60
+    user.settings.daily_last_sync_time_duration = 1
+    user.settings.daily_active = (
+        True  # Включаем активность для ежедневного синка
+    )
+    user.daily_sync_at = datetime.datetime.now(datetime.UTC)
     user.last_sync = None
+
     return user
 
 
@@ -79,19 +88,12 @@ def test_schedule_jobs(
     assert len(jobs) > 0
 
 
-from contextlib import contextmanager
-
-
 @contextmanager
 def timed(label):
     start = time.time()
     yield
     end = time.time()
     print(f"{label}: {end - start} seconds")
-
-
-import apscheduler.schedulers.background
-from threading import Event
 
 
 def test_run_scheduler(monkeypatch, caplog):

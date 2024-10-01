@@ -51,15 +51,19 @@ Tests:
 
 import pytest
 from flask import url_for
-from flask_login import UserMixin
-from app import create_app
-from app.extensions import db
+from app import create_app, db
 from app.models import Category, Feed, Settings, User
 
 
 @pytest.fixture
 def app():
     app = create_app("testing")
+    app.config.update(
+        {
+            "SERVER_NAME": "localhost",
+            "PREFERRED_URL_SCHEME": "http",
+        }
+    )
     app_context = app.app_context()
     app_context.push()
 
