@@ -1,29 +1,15 @@
 # QuickFeeds [![Python application](https://github.com/defnone/quickfeeds/actions/workflows/python-app.yml/badge.svg)](https://github.com/defnone/quickfeeds/actions/workflows/python-app.yml)
 A simple self-hosted RSS reader with article summarization feature.
 
-This is my first software project, developed for personal use.
-
-It runs on:
-- Flask
-- SQLite
-- [Groq](https://github.com/groq/groq-python) API (for article summarization)
-- Google Translate (for translating summarized text)
-- [feedparser](https://github.com/kurtmckee/feedparser)
-- [feedfinder2](https://github.com/dfm/feedfinder2) (for finding links feeds on a website)
+*This is my first software project, developed for personal use.*
 
 The application interface works well as a [Safari web app](https://support.apple.com/en-kw/guide/safari/ibrw9e991864/mac) for both macOS and iOS.
 
-![Screen 5](./assets/screen5.jpeg)
+![Screen](./assets/screenshot.png)
 
-![Web App on iOS](./assets/screen4.png)
 
-On macOS, it supports badges for unread feeds. You need to approve the system notification request from the web app for the badges to start displaying.
-
-![Badges on macOS](./assets/screen2.png)
 
 To activate summarization, you need to obtain a Groq API key and add it in the settings.
-
-![Summarization](./assets/screen3.gif)
 
 Any article text is first summarized through Groq using the llama3 model, which is free within the limits for personal use. Currently, the summarization translation supports the following languages through Google Translate:
 
@@ -124,6 +110,16 @@ The password is stored encrypted in the database. To change it, you need to run 
 docker exec quickfeeds-flask_app-1 python change_password.py user_name new_password
 ```
 Here, `quickfeeds-flask_app-1` is the name of the container, which can be seen by running the command `docker ps`.
+
+## Runs on
+- Flask
+- SQLite
+- [Groq](https://github.com/groq/groq-python) API (for article summarization)
+- Google Translate (for translating summarized text)
+- [feedparser](https://github.com/kurtmckee/feedparser)
+- [feedfinder2](https://github.com/dfm/feedfinder2)
+- sumy
+
 
 ## Acknowledgments
 
