@@ -134,7 +134,21 @@ function displayDailyData(data) {
     }
 }
 
+function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function (match) {
+        const escapeMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        };
+        return escapeMap[match];
+    });
+}
+
 function dailyHTMLTemplate(item, formattedDate) {
+    const fontSize = localStorage.getItem('font-size') ? escapeHTML(localStorage.getItem('font-size')) : 'text-lg';
     return `
         <!-- Article item -->
         <div class="flex flex-col w-full mt-14 animate-itemShow">
@@ -145,9 +159,7 @@ function dailyHTMLTemplate(item, formattedDate) {
                         : '<div class="flex flex-col mr-6 mb-4 lg:mb-0 pt-2 min-w-[200px] rounded-2xl items-center justify-center text-gray-500"></div>'
                 }
                 <div class="flex w-full flex-col">
-                    <div class="flex flex-col w-full d-content ${
-                        localStorage.getItem('font-size') ? localStorage.getItem('font-size') : 'text-lg'
-                    }" ${item.read ? 'style="color: #c4c4c4;"' : ''}>
+                    <div class="flex flex-col w-full d-content ${fontSize}" ${item.read ? 'style="color: #c4c4c4;"' : ''}>
                             ${item.summary}
                             </div>
                                                 
