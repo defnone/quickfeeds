@@ -22,6 +22,39 @@
         text-decoration: underline;
         text-decoration-color: #34324f;
     }
+    .daily-container {
+        @apply max-w-4xl mb-16 flex-col pl-6 lg:pl-16 pr-6;
+    }
+
+    .daily-container .d-content {
+        @apply text-gray-200;
+        line-height: 1.5;
+    }
+
+    .daily-container a {
+        @apply underline underline-offset-4;
+        text-decoration-color: #605e86;
+        text-decoration-thickness: 2px;
+    }
+
+    .daily-container a:hover {
+        @apply underline underline-offset-4 text-blue-200;
+    }
+
+    .daily-container .d-content ul {
+        @apply list-disc mb-4 pl-4;
+    }
+    .daily-container .d-content ul li {
+        @apply mb-2;
+    }
+    .daily-container .d-links {
+        @apply font-semibold text-blue-300;
+    }
+
+    .daily-container .d-pubdate {
+        @apply text-xs xl:text-sm font-semibold text-gray-600 uppercase;
+    }
+
     #feed-container {
         @apply mt-10 md:mt-0;
     }
@@ -34,14 +67,14 @@
     }
 
     .feed-content h1 {
-        @apply ml-0 mr-0 text-2xl xl:text-4xl mt-2 mb-2 font-bold text-gray-400;
+        @apply ml-0 mr-0 text-2xl xl:text-4xl mt-2 mb-2 font-bold text-gray-300;
     }
     .feed-content h2 {
-        @apply text-2xl xl:text-3xl mt-2 mb-2 font-bold text-gray-400;
+        @apply text-2xl xl:text-3xl mt-2 mb-2 font-bold text-gray-300;
     }
 
     .feed-content h3 {
-        @apply text-xl xl:text-2xl mt-2  mb-2 font-bold text-gray-400;
+        @apply text-xl xl:text-2xl mt-2  mb-2 font-bold text-gray-300;
     }
 
     .feed-content {
@@ -64,7 +97,7 @@
     }
 
     .feed-content blockquote {
-        @apply my-4 ml-9 text-orange-200 font-semibold;
+        @apply border-l-2 border-stone-200 pl-4 my-4 text-stone-200;
     }
 
     .feed-content figcaption {
@@ -113,11 +146,13 @@
     }
 
     .feed-content pre {
-        @apply bg-stone-900 text-white p-4 rounded-lg;
+        @apply bg-slate-950 text-white text-base p-10 rounded-lg overflow-x-auto my-6;
+        scrollbar-color: #4a5568 #1f2937;
+        scrollbar-width: thin;
     }
 
     .feed-content code {
-        @apply bg-stone-900 text-gray-300 px-2 py-1 rounded-lg;
+        @apply bg-slate-950 text-gray-300 px-1 py-1;
     }
 
     .feed-content audio {
@@ -153,7 +188,7 @@
     }
 
     .active-feed {
-        @apply block w-full pl-2 pr-1 pb-1.5 pt-1.5 mt-1 -mb-1 -ml-2 mr-1 text-sm rounded-lg text-white bg-gray-900 bg-opacity-70 hover:text-white active:bg-stone-900 focus:border-0 focus:outline-none;
+        @apply block w-full pl-2 pr-1 pb-1.5 pt-1.5 mt-1 -mb-0 -ml-2 mr-1 text-sm rounded-lg text-white bg-gray-900 bg-opacity-70 hover:text-white active:bg-stone-900 focus:border-0 focus:outline-none;
     }
 
     .empty-message {
@@ -172,27 +207,24 @@
         -moz-appearance: none;
         appearance: none;
     }
-    @keyframes loading {
-        0% {
-            background-position: 200% 0;
-        }
+    @keyframes pulsing {
+        0%,
         100% {
-            background-position: -200% 0;
+            background-color: #000000;
+        }
+        50% {
+            background-color: #292929;
         }
     }
+
     .line {
         height: 15px;
-        background: linear-gradient(
-            90deg,
-            #000000 25%,
-            #202020 50%,
-            #000000 75%
-        );
-        background-size: 200% 100%;
-        animation: loading 2.5s infinite;
+        background-color: #000000;
+        animation: pulsing 1.5s infinite;
         margin-top: 10px;
         border-radius: 4px;
     }
+
     .line.short {
         width: 60%;
     }
@@ -259,5 +291,20 @@ input[type='number'] {
 @keyframes spinner_xygp {
     100% {
         transform: rotate(360deg);
+    }
+}
+
+.animate-itemShow {
+    animation: itemShow 0.5s ease-in-out forwards;
+}
+
+@keyframes itemShow {
+    from {
+        opacity: 0;
+        transform: translateY(15%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

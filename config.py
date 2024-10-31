@@ -17,8 +17,9 @@ class Config:
 
 class TestingConfig(Config):
     TESTING = True
-    SERVER_NAME = "localhost:5000"
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    FLASK_HOST = "localhost"
+    FLASK_PORT = 5000
+    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "default_secret_key"
     LOG_LEVEL = "DEBUG"

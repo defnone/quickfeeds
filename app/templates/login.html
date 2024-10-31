@@ -6,7 +6,7 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0" />
         <link
-            href="{{ url_for('static', filename='css/output.css') }}"
+            href="{{ url_for('static', filename='css/bundle.css') }}"
             rel="stylesheet" />
         <script
             defer
@@ -39,8 +39,7 @@
     <body class="bg-slate-900 text-gray-50 font-noto-sans">
         {% include 'messages.html' %} {% block content %}
 
-        <div
-            class="flex max-w-[750px] h-screen ml-auto mr-auto items-end md:items-center justify-center mt-auto">
+        <div class="flex max-w-[750px] h-screen ml-auto mr-auto items-end md:items-center justify-center mt-auto">
             <div
                 class="text-gray-50 md:h-[500px] flex-grow md:block text-3xl ml-auto rounded-r-3xl md:rounded-r-none rounded-l-3xl"
                 style="
@@ -50,8 +49,7 @@
                 ">
                 <div
                     class="bg-black bg-opacity-50 h-full rounded-l-3xl rounded-r-3xl md:rounded-r-none grid md:flex items-end md:items-center md:justify-center">
-                    <div
-                        class="flex w-full md:ml-auto md:pt-0 pt-16 md:mb-0 mb-44 justify-center items-center">
+                    <div class="flex w-full md:ml-auto md:pt-0 pt-16 md:mb-0 mb-44 justify-center items-center">
                         <svg
                             width="59"
                             height="77"

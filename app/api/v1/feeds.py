@@ -1,8 +1,10 @@
+import logging
 from flask import Blueprint, flash, jsonify, request
 from flask_login import current_user
+from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models import Feed
-from sqlalchemy.exc import SQLAlchemyError
+
 
 api_feeds_blueprint = Blueprint("api_feeds_blueprint", __name__)
 
@@ -82,6 +84,7 @@ def delete_feed(feed_id):
         return jsonify({"status": "success"}), 200
 
     except SQLAlchemyError as e:
+        logging.error("Error on delete feed from DB: %s", str(e))
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 

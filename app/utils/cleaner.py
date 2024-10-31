@@ -1,6 +1,6 @@
-from bs4 import BeautifulSoup, Comment
 import logging
 from urllib.parse import urlparse, urlunparse
+from bs4 import BeautifulSoup, Comment
 
 # Global constants for allowed tags and attributes
 ALLOWED_TAGS = [
@@ -65,6 +65,79 @@ ALLOWED_ATTRIBUTES = {
         "url",
     ],
 }
+
+
+def remove_url_params(url):
+    """
+    Remove URL parameters from a given URL.
+
+    This function takes a URL as input, parses it using the urlparse function,
+    removes the query string (i.e., the URL parameters), and returns the
+    resulting URL.
+
+    Args:
+        url (str): The input URL to be cleaned.
+
+    Returns:
+        str: The cleaned URL with all parameters removed.
+
+    Example:
+        >>> remove_url_params("https://example.com/path?a=1&b=2")
+        "https://example.com/path"
+    """
+    parsed_url = urlparse(url)
+    return urlunparse(parsed_url._replace(query=""))
+
+
+def remove_duplicate_images(soup):
+    """
+    Remove duplicate images from the given BeautifulSoup object.
+
+    This function finds all img tags in the given soup, removes URL parameters
+    from their src attributes, and then removes duplicate images.
+
+    Args:
+        soup (BeautifulSoup): The input BeautifulSoup object to be cleaned.
+
+    Returns:
+        BeautifulSoup: The cleaned BeautifulSoup object with duplicate images
+        removed.
+
+    Notes:
+        This function uses the remove_url_params function to remove URL
+        parameters from image sources. It logs warnings for img tags that are
+        None or missing the src attribute, and errors for any exceptions that
+        occur while cleaning the URL.
+    """
+    images = soup.find_all("img")
+    if not images:
+        logging.warning("No img tags found")
+        return soup
+
+    unique_images = set()
+
+    for img in images:
+        if img is None or "src" not in str(img):
+            logging.warning("Img tag is None")
+            continue
+
+        img_src = img.get("src")
+        if img_src is None:
+            logging.warning("Img tag missing src attribute")
+            continue
+
+        try:
+            cleaned_src = remove_url_params(img_src)
+        except (ValueError, TypeError) as e:
+            logging.error("Error cleaning URL: %s", str(e))
+            continue
+
+        if cleaned_src in unique_images:
+            logging.debug("Duplicate image removed: %s", str(img)[:100])
+            img.unwrap()
+        else:
+            unique_images.add(cleaned_src)
+    return soup
 
 
 def remove_url_params(url):
@@ -154,6 +227,9 @@ def clean_summary(summary):
         for tag in soup.find_all(tag_name):
             tag.unwrap()
 
+    # Remove images duplicates
+    soup = remove_duplicate_images(soup)
+
     # Remove image doubles
     soup = clean_images(soup)
 
@@ -169,7 +245,7 @@ def clean_summary(summary):
                 calculated_height = int(original_width / aspect_ratio)
                 iframe["height"] = str(calculated_height) + "px"
             except ValueError as e:
-                logging.error(f"Error parsing iframe width: {e}")
+                logging.error("Error parsing iframe width: %s", str(e))
                 iframe["height"] = "auto"
         iframe["width"] = "100%"
 

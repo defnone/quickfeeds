@@ -21,6 +21,7 @@ def index():
     """
     Render the index page or redirect to 'all_items' if no unread items.
     """
+
     user_settings = get_user_settings(current_user.id)
     if not user_settings.unread:
         return redirect(url_for("routes.all_items"))
@@ -111,6 +112,15 @@ def all_feed_items(cat_id, feed_id):
     return render_template("index.html", title=title)
 
 
+@routes_blueprint.route("/daily")
+@login_required
+def daily():
+    """
+    Render the Daily page.
+    """
+    return render_template("daily.html", title="QuickFeeds Daily")
+
+
 @routes_blueprint.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
@@ -126,12 +136,18 @@ def settings():
     )
 
 
+@routes_blueprint.route("/settings/daily", methods=["GET", "POST"])
+@login_required
+def settings_daily():
+    return render_template(
+        "settings-daily.html",
+        title="Daily Settings",
+    )
+
+
 @routes_blueprint.route("/settings/categories", methods=["GET"])
 @login_required
 def settings_categories():
-    """
-    Render the settings page.
-    """
     return render_template(
         "settings-manage-cat.html",
         title="Manage Categories",

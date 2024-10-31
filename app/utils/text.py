@@ -1,8 +1,3 @@
-"""
-This module provides functions for fetching and parsing articles from the web.
-It includes utilities for URL validation, HTTP requests, and HTML parsing.
-"""
-
 import re
 from urllib.parse import urlparse
 import ipaddress
@@ -10,6 +5,8 @@ import socket
 import logging
 import requests
 from bs4 import BeautifulSoup
+from goose3 import Goose
+from goose3.network import NetworkError
 
 
 def fetch_article(url):
@@ -41,7 +38,7 @@ def fetch_article(url):
             logging.error("Response content is too large: %s", url)
             raise ValueError("Response content is too large.")
 
-        return response.text
+        return response.text[:6000]
 
     except requests.RequestException as e:
         logging.error("Failed to fetch article: %s", str(e))
@@ -119,13 +116,19 @@ def is_url_safe(url):
 
 def parse_article(html_content):
     """
-    Parse the HTML content of an article and extract the title and text.
+    Extracts the title and text from an HTML article content.
 
     Args:
-        html_content (str): The HTML content of the article.
+        html_content (str): The HTML content of the article to parse.
 
     Returns:
-        tuple: The title and text of the article.
+        tuple: A tuple containing the title and text of the article, truncated
+        to 5900 characters.
+
+    Notes:
+        This function uses the BeautifulSoup library to parse the HTML content.
+        The title is extracted from the first `<h1>` tag, and the text is
+        extracted from all `<p>` tags.
     """
     soup = BeautifulSoup(html_content, "html.parser")
     title = soup.find("h1").get_text()
@@ -134,19 +137,111 @@ def parse_article(html_content):
     return title, text[:5900]
 
 
-def get_text_from_url(url):
+def parse_article_as_goose3(url):
     """
-    Fetch the HTML content of an article at the given URL and parse it to
-    extract the title and text.
+    Extracts the title and cleaned text from an article
+    URL using Goose3 library.
 
     Args:
-        url (str): The URL of the article to fetch and parse.
+        url (str): The URL of the article to extract.
 
     Returns:
-        tuple: The title and text of the article.
+        tuple: A tuple containing the article title and cleaned text,
+        or (None, None) if the URL is not safe.
+
+    Notes:
+        This function uses the Goose3 library to extract the article content.
+        The `is_url_safe` function is used to check
+        if the URL is safe to extract.
     """
-    html_content = fetch_article(url)
-    return parse_article(html_content)
+    g = Goose()
+    g.config.browser_user_agent = "Mozilla/5.0 (Linux; Android 11; Pixel 5) \
+                                     AppleWebKit/537.36 (KHTML, like Gecko) \
+                                        Chrome/115.0.0.0 Mobile Safari/537.36"
+
+    if is_url_safe(url):
+        article = g.extract(url=url)
+    else:
+        return None, None
+    logging.debug("Goose3 extracted article title: %s", article.title)
+    logging.debug("Goose3 extracted article text: %s", article.cleaned_text)
+    return article.title, article.cleaned_text
+
+
+def get_image_from_url(url):
+    """
+    Extracts the image URL from an article URL using Goose3 library.
+
+    Args:
+        url (str): The URL of the article to extract the image from.
+
+    Returns:
+        str: The URL of the extracted image, or None if the URL is
+            not safe or an error occurs.
+
+    Notes:
+        This function uses the Goose3 library to extract the article content.
+        The `is_url_safe` function is used to check if the
+        URL is safe to extract.
+        If a NetworkError or any other exception occurs during
+        the extraction process, an error message is logged and None
+        is returned.
+    """
+    g = Goose()
+    try:
+        if is_url_safe(url):
+            article = g.extract(url=url)
+            image_url = article.infos["opengraph"]["image"]
+        else:
+            image_url = None
+    except NetworkError as e:
+        logging.error("Network error occurred while fetching image: %s", e)
+        image_url = None
+    except Exception as e:
+        logging.error("Unexepted error occurred while fetching image: %s", e)
+        image_url = None
+    return image_url
+
+
+def get_text_from_url(url, processor="bs4"):
+    """
+
+    Extracts the title and text from an article at the given URL.
+
+    Args:
+        url (str): The URL of the article to extract.
+        processor (str, optional): The processor to use for extraction.
+            Defaults to "bs4" for BeautifulSoup. Can also be "goose3" for
+            Goose3.
+
+    Returns:
+        tuple: A tuple containing the title and text of the article.
+
+    Notes:
+        If processor is "bs4", the function uses BeautifulSoup to parse the
+        HTML content of the article. If processor is "goose3", the function
+        uses Goose3 to extract the article content.
+    """
+
+    # BS4 Processor
+    if processor == "bs4":
+        html_content = fetch_article(url)
+        logging.debug("Extracting article content with bs4: %s", html_content)
+        return parse_article(html_content)
+
+    # Goose3 processor
+    elif processor == "goose3":
+        g_result = parse_article_as_goose3(url)
+        logging.debug(
+            "Extracting article content with goose3: %s",
+            g_result,
+        )
+
+        if len(g_result[1]) == 0:
+            logging.error("No content found in article on proccessing.")
+            raise ValueError("No content found in article on proccessing.")
+
+        return g_result
 
 
 def text_to_html_list(text):

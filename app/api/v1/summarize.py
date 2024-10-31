@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from app.models import Settings
@@ -41,8 +42,15 @@ def summarize():
         )
 
     url = data.get("url")
-    query = get_text_from_url(url)
-
+    try:
+        query = get_text_from_url(url, processor="goose3")
+    except Exception as e:
+        return (
+            jsonify(
+                {"status": "error", "error": f"Failed to get text: {str(e)}"}
+            ),
+            500,
+        )
     if not query:
         return (
             jsonify(
@@ -53,7 +61,7 @@ def summarize():
 
     try:
         response = groq_request(
-            query, current_user_settings.groq_api_key, SUMMARIZE
+            query, current_user_settings.groq_api_key, SUMMARIZE, model="90b"
         )
     except Exception as e:
         return (
@@ -80,4 +88,17 @@ def summarize():
             )
 
     response = text_to_html_list(response)
+    print(response)
+    if len(response) == 0:
+        return (
+            logging.error("Blank summary %s", response),
+            jsonify(
+                {
+                    "status": "error",
+                    "error": "Failed to summarize: blank response",
+                }
+            ),
+            500,
+        )
+
     return jsonify({"summary": response}), 200
