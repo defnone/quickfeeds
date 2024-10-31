@@ -59,9 +59,18 @@ export function loadMoreItems() {
                                 <div class="tb-feed-date">${formattedDate}</div> 
                                 <div class="tb-feed-author">${creatorContent}</div>
                             </div>
-                            <div id="exp-hidden" x-data="{ expanded: false }" class="feed-content relative ${
-                                localStorage.getItem('font-size') ? localStorage.getItem('font-size') : 'text-lg'
-                            }" :class="{ 'overflow-hidden': !expanded, 'max-h-none overflow-visible': expanded }">
+                            <div id="exp-hidden" x-data="{ expanded: false }" class="feed-content relative" :class="{ 'overflow-hidden': !expanded, 'max-h-none overflow-visible': expanded }">
+                                <script>
+                                    (function() {
+                                        const fontSize = localStorage.getItem('font-size') || 'text-lg';
+                                        const validFontSizes = ['text-lg', 'text-sm', 'text-md']; // Add all valid font sizes here
+                                        if (validFontSizes.includes(fontSize)) {
+                                            document.getElementById('exp-hidden').classList.add(fontSize);
+                                        } else {
+                                            document.getElementById('exp-hidden').classList.add('text-lg');
+                                        }
+                                    })();
+                                </script>
                                 ${item.summary}c
                                 <div class="absolute bottom-0 left-0 w-full h-60 bg-gradient-to-t from-slate-800 via-slate-800/90 to-slate-800/0 pointer-events-none" x-show="!expanded"></div>
                                 <button class="absolute bottom-0 left-0 w-full text-center py-2 font-bold text-white transition-colors focus:outline-none" x-show="!expanded" @click="expanded = true">
