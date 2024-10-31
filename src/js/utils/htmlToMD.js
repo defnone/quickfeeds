@@ -3,7 +3,7 @@ import sanitizeHtml from 'sanitize-html';
 export function htmlToMarkdown(html) {
     // Sanitize HTML input
     html = sanitizeHtml(html, {
-        allowedTags: ['ul', 'li', 'p'],
+        allowedTags: [],
         allowedAttributes: {}
     });
     // Convert list items
@@ -13,6 +13,6 @@ export function htmlToMarkdown(html) {
     // Convert paragraphs
     html = html.replace(/<p>(.*?)<\/p>/g, '$1\n\n');
     // Remove other tags
-    html = html.replace(/<\/?[^>]+>/g, '');
+    // Tags are already removed by sanitizeHtml
     return html;
 }
