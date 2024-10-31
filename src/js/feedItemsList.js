@@ -8,52 +8,52 @@ let EOF = false;
 const readPosts = new Set();
 
 export function reloadFeedList() {
-    loading = false;
-    lastItemId = null;
-    EOF = false;
-    readPosts.clear();
-    document.getElementById('feed-container').innerHTML = '';
-    loadMoreItems();
+  loading = false;
+  lastItemId = null;
+  EOF = false;
+  readPosts.clear();
+  document.getElementById('feed-container').innerHTML = '';
+  loadMoreItems();
 }
 
 export function feedListEventListeners() {
-    window.addEventListener('scroll', handleScroll);
+  window.addEventListener('scroll', handleScroll);
 }
 
 // Function to load items from the API and append them to the feed container
 export function loadMoreItems() {
-    const feedContainer = document.getElementById('feed-container');
-    if (loading) return;
-    if (EOF) return;
-    loading = true;
-    const apiPath = getApiPath(lastItemId);
+  const feedContainer = document.getElementById('feed-container');
+  if (loading) return;
+  if (EOF) return;
+  loading = true;
+  const apiPath = getApiPath(lastItemId);
 
-    fetch(apiPath)
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.length > 0) {
-                data.forEach((item) => {
-                    const itemElement = document.createElement('div');
-                    itemElement.classList.add('feed-item', 'animate-itemShow');
-                    itemElement.dataset.read = item.read;
-                    itemElement.dataset.id = item.id;
+  fetch(apiPath)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((item) => {
+          const itemElement = document.createElement('div');
+          itemElement.classList.add('feed-item', 'animate-itemShow');
+          itemElement.dataset.read = item.read;
+          itemElement.dataset.id = item.id;
 
-                    let options = {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    };
-                    let pubDate = new Date(item.pub_date);
-                    let formattedDate = pubDate.toLocaleString('en-GB', options);
-                    let creatorContent = item.creator !== null ? item.creator : '';
+          let options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          };
+          let pubDate = new Date(item.pub_date);
+          let formattedDate = pubDate.toLocaleString('en-GB', options);
+          let creatorContent = item.creator !== null ? item.creator : '';
 
-                    itemElement.innerHTML = `
+          itemElement.innerHTML = `
                             <div class="tb-feed-name">${item.feed_title}</div>
                             <h1 class="item-title"><a class="hover:text-blue-200" target="_blank" rel="noopener noreferrer" href="${
-                                item.link
+                              item.link
                             }">${item.title}</a></h1>
                             <div class="flex-col md:flex-row flex">
                                 <div class="tb-feed-date">${formattedDate}</div> 
@@ -71,7 +71,7 @@ export function loadMoreItems() {
                                         }
                                     })();
                                 </script>
-                                ${item.summary}c
+                                ${item.summary}
                                 <div class="absolute bottom-0 left-0 w-full h-60 bg-gradient-to-t from-slate-800 via-slate-800/90 to-slate-800/0 pointer-events-none" x-show="!expanded"></div>
                                 <button class="absolute bottom-0 left-0 w-full text-center py-2 font-bold text-white transition-colors focus:outline-none" x-show="!expanded" @click="expanded = true">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-11 w-15 h-15 ml-auto mr-auto shadow-2xl shadow-stone-950 bg-black transition duration-50 hover:bg-stone-700 mb-4 p-3 rounded-full gradient-arrow">
@@ -93,134 +93,134 @@ export function loadMoreItems() {
                                 </div>
                             </div>
                         `;
-                    feedContainer.appendChild(itemElement);
-                    handleOverflow(itemElement);
-                });
-
-                lastItemId = data[data.length - 1].id;
-                loading = false;
-            }
-            if (data.length === 1 || data.length === 2) {
-                emptyMessage(feedContainer);
-                loading = false;
-            } else if (data.length === 0) {
-                emptyMessage(feedContainer);
-                loading = false;
-                EOF = true;
-            }
-        })
-        .catch((error) => {
-            console.error('Error fetching the feed items:', error);
-            loading = false;
+          feedContainer.appendChild(itemElement);
+          handleOverflow(itemElement);
         });
+
+        lastItemId = data[data.length - 1].id;
+        loading = false;
+      }
+      if (data.length === 1 || data.length === 2) {
+        emptyMessage(feedContainer);
+        loading = false;
+      } else if (data.length === 0) {
+        emptyMessage(feedContainer);
+        loading = false;
+        EOF = true;
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching the feed items:', error);
+      loading = false;
+    });
 }
 
 // Function to display an empty message
 function emptyMessage(feedContainer) {
-    if (document.getElementById('empty')) {
-        return;
-    }
-    const message = window.location.pathname.includes('/all')
-        ? "There's nothing here."
-        : 'There are no more unread items.';
+  if (document.getElementById('empty')) {
+    return;
+  }
+  const message = window.location.pathname.includes('/all')
+    ? "There's nothing here."
+    : 'There are no more unread items.';
 
-    const itemElement = document.createElement('div');
-    itemElement.id = 'empty';
-    itemElement.className = 'empty-message';
-    itemElement.innerHTML = `
+  const itemElement = document.createElement('div');
+  itemElement.id = 'empty';
+  itemElement.className = 'empty-message';
+  itemElement.innerHTML = `
                 <div class="w-full text-center ml-auto mb-[50%] mr-auto mt-[20%] text-gray-600">
                   ${message}<br><img src="/static/imgs/cup.png" width="100px" class="ml-auto mr-auto mt-10">
                 </div>`;
-    feedContainer.appendChild(itemElement);
+  feedContainer.appendChild(itemElement);
 }
 
 // Function to handle overflow of feed content
 function handleOverflow(item) {
-    const content = item.querySelector('.feed-content');
-    const windowHeight = window.innerHeight;
-    const itemHeight = item.offsetHeight;
+  const content = item.querySelector('.feed-content');
+  const windowHeight = window.innerHeight;
+  const itemHeight = item.offsetHeight;
 
-    if (itemHeight > windowHeight * 0.8) {
-        content.style.maxHeight = `${windowHeight * 0.8}px`;
-        content.style.overflow = 'hidden';
+  if (itemHeight > windowHeight * 0.8) {
+    content.style.maxHeight = `${windowHeight * 0.8}px`;
+    content.style.overflow = 'hidden';
 
-        const gradient = content.querySelector('.bg-gradient-to-t');
-        const button = content.querySelector('button');
+    const gradient = content.querySelector('.bg-gradient-to-t');
+    const button = content.querySelector('button');
 
-        gradient.classList.remove('hidden');
-        button.classList.remove('hidden');
+    gradient.classList.remove('hidden');
+    button.classList.remove('hidden');
 
-        button.addEventListener('click', () => {
-            content.style.maxHeight = 'none';
-            content.style.overflow = 'visible';
-            gradient.classList.add('hidden');
-            button.classList.add('hidden');
+    button.addEventListener('click', () => {
+      content.style.maxHeight = 'none';
+      content.style.overflow = 'visible';
+      gradient.classList.add('hidden');
+      button.classList.add('hidden');
 
-            checkPostsVisibility();
-        });
-    } else {
-        const gradient = content.querySelector('.bg-gradient-to-t');
-        const button = content.querySelector('button');
+      checkPostsVisibility();
+    });
+  } else {
+    const gradient = content.querySelector('.bg-gradient-to-t');
+    const button = content.querySelector('button');
 
-        if (gradient) {
-            gradient.classList.add('hidden');
-        }
-        if (button) {
-            button.classList.add('hidden');
-        }
+    if (gradient) {
+      gradient.classList.add('hidden');
     }
+    if (button) {
+      button.classList.add('hidden');
+    }
+  }
 }
 
 // Function to check the visibility of posts and mark them as read if they are visible
 function checkPostsVisibility() {
-    const feedItems = document.querySelectorAll('.feed-item');
-    const windowHeight = window.innerHeight;
+  const feedItems = document.querySelectorAll('.feed-item');
+  const windowHeight = window.innerHeight;
 
-    feedItems.forEach((item) => {
-        if (item.dataset.read === 'true') {
-            return;
-        }
+  feedItems.forEach((item) => {
+    if (item.dataset.read === 'true') {
+      return;
+    }
 
-        const rect = item.getBoundingClientRect();
-        const postId = item.dataset.id;
-        const isRead = item.dataset.read === 'true';
+    const rect = item.getBoundingClientRect();
+    const postId = item.dataset.id;
+    const isRead = item.dataset.read === 'true';
 
-        if (rect.bottom <= windowHeight * 0.7 && !isRead) {
-            markAsRead(postId);
-            item.dataset.read = 'true';
-        }
-    });
+    if (rect.bottom <= windowHeight * 0.7 && !isRead) {
+      markAsRead(postId);
+      item.dataset.read = 'true';
+    }
+  });
 }
 
 // Function to mark a post as read
 function markAsRead(postId) {
-    if (!readPosts.has(postId)) {
-        fetch(`/mark_as_read/${postId}`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((response) => {
-                if (response.ok) {
-                    readPosts.add(postId);
-                    checkUnreadCount();
-                    fetchCategoriesAndBlogs();
-                } else {
-                    console.error('Error marking post as read:', response.statusText);
-                }
-            })
-            .catch((error) => {
-                console.error('Error marking post as read:', error);
-            });
-    }
+  if (!readPosts.has(postId)) {
+    fetch(`/mark_as_read/${postId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          readPosts.add(postId);
+          checkUnreadCount();
+          fetchCategoriesAndBlogs();
+        } else {
+          console.error('Error marking post as read:', response.statusText);
+        }
+      })
+      .catch((error) => {
+        console.error('Error marking post as read:', error);
+      });
+  }
 }
 
 function handleScroll() {
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    if (scrollTop + clientHeight >= scrollHeight * 0.7) {
-        loadMoreItems();
-    }
-    checkPostsVisibility();
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+  if (scrollTop + clientHeight >= scrollHeight * 0.7) {
+    loadMoreItems();
+  }
+  checkPostsVisibility();
 }
