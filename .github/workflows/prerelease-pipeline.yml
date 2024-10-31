@@ -5,8 +5,8 @@ on:
     types: [prereleased]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,16 +54,17 @@ jobs:
 
       - name: Create version file
         run: echo "${{ env.TAG }}" > version.txt
-            - name: Build and push Docker image for pre-release
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  platforms: linux/amd64,linux/arm64
-                  push: true
-                  cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/quickfeeds:cache
-                  cache-to: type=inline
-                  build-args: |
-                      APP_VERSION=${{ env.TAG }}
-                  tags: |
-                      ghcr.io/${{ github.repository_owner }}/quickfeeds:${{ github.event.release.tag_name }}-pre
-                      ghcr.io/${{ github.repository_owner }}/quickfeeds:pre-release
+
+      - name: Build and push Docker image for pre-release
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/quickfeeds:cache
+          cache-to: type=inline
+          build-args: |
+            APP_VERSION=${{ env.TAG }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/quickfeeds:${{ github.event.release.tag_name }}-pre
+            ghcr.io/${{ github.repository_owner }}/quickfeeds:pre-release
