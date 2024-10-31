@@ -1,4 +1,11 @@
+import sanitizeHtml from 'sanitize-html';
+
 export function htmlToMarkdown(html) {
+    // Sanitize HTML input
+    html = sanitizeHtml(html, {
+        allowedTags: ['ul', 'li', 'p'],
+        allowedAttributes: {}
+    });
     // Convert list items
     html = html.replace(/<li>(.*?)<\/li>/g, '- $1\n');
     // Convert unordered lists
