@@ -31,7 +31,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Download NLTK data if not downloaded yet
-nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
 
 app = create_app(db)
 try:
