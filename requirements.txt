@@ -16,4 +16,4 @@ goose3==3.1.19
 nltk==3.9.1
 sumy==0.11.0
 pandas==2.2.3
-openai==1.55.3
+openai==1.57.0
