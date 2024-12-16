@@ -10,7 +10,7 @@ pytz==2024.2
 Requests==2.32.3
 waitress==3.0.2
 humanize==4.11.0
-groq==0.13.0
+groq==0.13.1
 apscheduler==3.11.0
 goose3==3.1.19
 nltk==3.9.1
