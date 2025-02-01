@@ -1,4 +1,4 @@
-alembic==1.14.0
+alembic==1.14.1
 beautifulsoup4==4.12.3
 feedfinder2==0.0.4
 feedparser==6.0.11
