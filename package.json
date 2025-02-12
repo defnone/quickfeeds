@@ -19,7 +19,7 @@
         "@eslint/js": "^9.7.0",
         "autoprefixer": "^10.4.19",
         "chai": "^5.1.1",
-        "esbuild": "^0.23.0",
+        "esbuild": "^0.25.0",
         "eslint": "^9.7.0",
         "esm": "^3.2.25",
         "globals": "^15.8.0",
