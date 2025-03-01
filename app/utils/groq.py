@@ -16,7 +16,7 @@ def groq_request(
         text = f"{title}\n\n{text}"
 
     if model == "70b":
-        model = "llama-3.1-70b-versatile"
+        model = "llama-3.3-70b-versatile"
     elif model == "8b":
         model = "llama-3.1-8b-instant"
 
@@ -73,7 +73,7 @@ def groq_compare_titles(text, api_key, prompt="Summarize the text"):
     text = str(text)
     client = Groq(api_key=api_key, timeout=10.0)
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": text},
@@ -112,7 +112,7 @@ def check_groq_api(api_key):
     try:
         client = Groq(api_key=api_key)
         completion = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "Return only pong."},
                 {"role": "user", "content": "ping"},
