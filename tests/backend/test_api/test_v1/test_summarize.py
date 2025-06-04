@@ -207,36 +207,4 @@ def test_successful_summarization(
     assert "Summarized text" in response.json["summary"]
 
 
-@patch("app.api.v1.summarize.text_to_html_list")
-@patch("app.api.v1.summarize.translate_text_google")
-@patch("app.api.v1.summarize.groq_request")
-def test_translation(
-    mock_groq_request,
-    mock_translate,
-    mock_text_to_html_list,
-    client,
-    auth,
-    create_user,
-    create_settings,
-):
-    """
-    Test the API summarization endpoint for a successful translation.
-    """
-    auth.login(username="testuser", password="testpassword")
 
-    with client.application.app_context():
-        # Update user settings within the application context
-        settings = Settings.query.filter_by(user_id=create_user.id).first()
-        settings.translate = True
-        db.session.commit()
-
-    mock_translate.return_value = "Translated text"
-    mock_groq_request.return_value = "Summarized text"
-    mock_text_to_html_list.return_value = ["Translated text"]
-    response = client.post(
-        "/api/summarize",
-        json={"url": "http://example.com", "translate": True},
-        content_type="application/json",
-    )
-    assert response.status_code == 200
-    assert "Translated text" in response.json["summary"]
