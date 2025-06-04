@@ -19,6 +19,8 @@ def groq_request(
         model = "llama-3.3-70b-versatile"
     elif model == "8b":
         model = "llama-3.1-8b-instant"
+    elif model == "llama-4-maverick-17b-128e-instruct":
+        model = "meta-llama/llama-4-maverick-17b-128e-instruct"
 
     client = Groq(api_key=api_key, timeout=10.0)
     completion = client.chat.completions.create(

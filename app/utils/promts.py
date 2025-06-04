@@ -1,6 +1,6 @@
 SUMMARIZE = """
 **INSTRUCTIONS**\n
-Please provide a comprehensive summary of the provided text, capturing all key details and arguments. The summary should accurately reflect the main message of the original content, focusing on critical points while maintaining a semi-formal tone. It is important that the summary includes all essential information to allow a clear understanding of the article or news piece without reading the original text. Please ensure the language remains objective and factual, avoiding personal biases. Deliver the summary concisely, aiming to include all necessary information within a succinct format. The summary must be written in English. Take a deep breath and work on this step-by-step.
+Please provide a comprehensive summary of the provided text, capturing all key details and arguments. The summary should accurately reflect the main message of the original content, focusing on critical points while maintaining a semi-formal tone. It is important that the summary includes all essential information to allow a clear understanding of the article or news piece without reading the original text. Please ensure the language remains objective and factual, avoiding personal biases. Deliver the summary concisely, aiming to include all necessary information within a succinct format. Take a deep breath and work on this step-by-step.
 \n\n
 **RETURN FORMAT**\n
 Please return only the summary list without any your additional text on.

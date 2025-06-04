@@ -5,7 +5,7 @@ from app.models import Settings
 from app.utils.groq import groq_request
 from app.utils.promts import SUMMARIZE
 from app.utils.text import get_text_from_url, text_to_html_list
-from app.utils.translate import translate_text_google
+
 
 api_summarize_blueprint = Blueprint("api_summarize_blueprint", __name__)
 
@@ -61,7 +61,10 @@ def summarize():
 
     try:
         response = groq_request(
-            query, current_user_settings.groq_api_key, SUMMARIZE, model="70b"
+            query,
+            current_user_settings.groq_api_key,
+            SUMMARIZE + "\n\nThe summary must be written in " + current_user_settings.language,
+            model="llama-4-maverick-17b-128e-instruct",
         )
     except Exception as e:
         return (
@@ -71,21 +74,7 @@ def summarize():
             500,
         )
 
-    if current_user_settings.translate:
-        try:
-            response = translate_text_google(
-                response, current_user_settings.language
-            )
-        except Exception as e:
-            return (
-                jsonify(
-                    {
-                        "status": "error",
-                        "error": f"Failed to translate: {str(e)}",
-                    }
-                ),
-                500,
-            )
+    
 
     response = text_to_html_list(response)
     print(response)

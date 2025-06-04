@@ -5,7 +5,6 @@ from flask_login import current_user
 from app.models import SummarizedArticle, ArticleLink, FeedItem, Settings, Feed
 from app import db
 from app.utils.text import get_text_from_url, text_to_html_list
-from app.utils.translate import translate_text_google
 from app.utils.groq import groq_request
 from app.utils.promts import SUMMARIZE
 
@@ -225,8 +224,14 @@ def summarize_article(id):
                 )
             try:
                 response = groq_request(
-                    query, current_user_settings.groq_api_key, SUMMARIZE
+                query,
+                current_user_settings.groq_api_key,
+                    SUMMARIZE
+                    + "\n\nThe summary must be written in "
+                    + current_user_settings.language,
+                    model="llama-4-maverick-17b-128e-instruct",
                 )
+
                 break
             except Exception as e:
                 return (
@@ -238,21 +243,7 @@ def summarize_article(id):
                     ),
                     500,
                 )
-        if current_user_settings.translate:
-            try:
-                response = translate_text_google(
-                    response, current_user_settings.language
-                )
-            except Exception as e:
-                return (
-                    jsonify(
-                        {
-                            "status": "error",
-                            "error": f"Failed to translate: {str(e)}",
-                        }
-                    ),
-                    500,
-                )
+        
     else:
         logging.error("Article not found")
         return jsonify({"status": "error", "error": "Article not found"}), 404
